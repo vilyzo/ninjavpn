@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
+  <title>Бесплатный VPN — инструкция</title>
+  <style>
+    :root {
+      --bg:      #08080f;
+      --surface: #0f0f1c;
+      --surf2:   #15152a;
+      --border:  rgba(153,69,255,.18);
+      --primary: #9945ff;
+      --pglow:   0 0 22px rgba(153,69,255,.32);
+      --pdim:    rgba(153,69,255,.14);
+      --accent:  #00eeff;
+      --adim:    rgba(0,238,255,.1);
+      --text:    #eeeeff;
+      --muted:   #6e6e9a;
+      --green:   #00e096;
+      --gdim:    rgba(0,224,150,.12);
+      --r:       16px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .wrap {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 16px 14px 48px;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .logo {
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, #9945ff 0%, #6622cc 100%);
+      border-radius: 13px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+      box-shadow: var(--pglow);
+    }
+    .header-text { flex: 1; min-width: 0; }
+    .header-title { font-size: 18px; font-weight: 800; letter-spacing: -.2px; }
+    .header-sub   { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+    /* ── Step label ── */
+    .step-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 22px 0 10px;
+    }
+    .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #9945ff 0%, #6622cc 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800;
+      flex-shrink: 0;
+      box-shadow: var(--pglow);
+    }
+    .step-title { font-size: 14px; font-weight: 700; color: var(--text); }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 18px 16px;
+    }
+    .card + .card { margin-top: 10px; }
+
+    .hint {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+    .hint:last-child { margin-bottom: 0; }
+
+    /* ── Download button ── */
+    .btn-dl {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #9945ff 0%, #7722dd 100%);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 12px;
+      padding: 14px 20px;
+      font-size: 15px;
+      font-weight: 700;
+      box-shadow: 0 2px 18px rgba(153,69,255,.28);
+      transition: opacity .14s, transform .1s;
+    }
+    .btn-dl:active { transform: scale(.97); opacity: .88; }
+
+    /* ── Subscription block ── */
+    .sub-block {
+      background: var(--surf2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .sub-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+    .sub-text-wrap {
+      position: relative;
+      overflow: hidden;
+      border-radius: 8px;
+      background: rgba(0,0,0,.35);
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      cursor: default;
+      user-select: none;
+    }
+    .sub-text {
+      font-size: 11px;
+      font-family: monospace;
+      color: var(--accent);
+      word-break: break-all;
+      line-height: 1.5;
+      filter: blur(4px);
+      transition: filter .2s;
+      user-select: text;
+      pointer-events: none;
+    }
+    .sub-text-wrap:hover .sub-text,
+    .sub-text-wrap:focus-within .sub-text { filter: blur(0); }
+
+    .sub-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      pointer-events: none;
+      transition: opacity .2s;
+      background: transparent;
+    }
+    .sub-text-wrap:hover .sub-overlay { opacity: 0; }
+
+    .btn-copy {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      width: 100%;
+      background: var(--pdim);
+      border: 1px solid rgba(153,69,255,.3);
+      border-radius: 10px;
+      color: #c9aaff;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 12px;
+      cursor: pointer;
+      transition: background .14s, transform .1s;
+    }
+    .btn-copy:active { background: rgba(153,69,255,.28); transform: scale(.98); }
+    .btn-copy.ok { background: var(--gdim); border-color: rgba(0,224,150,.3); color: var(--green); }
+
+    /* ── Instruction steps ── */
+    .instr-step {
+      display: flex;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(153,69,255,.1);
+    }
+    .instr-step:last-child { border-bottom: none; padding-bottom: 0; }
+    .instr-step:first-child { padding-top: 0; }
+
+    .instr-num {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: var(--pdim);
+      border: 1px solid rgba(153,69,255,.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+      color: #c9aaff;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .instr-body { flex: 1; min-width: 0; }
+    .instr-text {
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text);
+    }
+    .instr-text code {
+      font-size: 12px;
+      background: rgba(153,69,255,.18);
+      color: #c9aaff;
+      border-radius: 5px;
+      padding: 2px 6px;
+      font-family: monospace;
+    }
+
+    .img-wrap {
+      margin-top: 12px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--surf2);
+      border: 1px solid var(--border);
+      display: inline-block;
+      max-width: 220px;
+    }
+    .img-wrap img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    /* ── Final CTA ── */
+    .cta-block {
+      background: linear-gradient(135deg, rgba(153,69,255,.14) 0%, rgba(0,238,255,.06) 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 20px 16px;
+    }
+    .cta-icon { font-size: 32px; margin-bottom: 10px; }
+    .cta-title {
+      font-size: 16px; font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .cta-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+    .btn-bot {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #229ED9 0%, #1a7fb8 100%);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 12px;
+      padding: 14px 20px;
+      font-size: 15px;
+      font-weight: 700;
+      box-shadow: 0 2px 16px rgba(34,158,217,.3);
+      transition: opacity .14s, transform .1s;
+    }
+    .btn-bot:active { transform: scale(.97); opacity: .88; }
+
+    /* ── Notice ── */
+    .notice {
+      display: flex;
+      gap: 10px;
+      background: var(--adim);
+      border: 1px solid rgba(0,238,255,.18);
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 12px;
+    }
+    .notice-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+    .notice-text { font-size: 12px; color: var(--accent); line-height: 1.5; }
+
+    /* ── Divider ── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 14px 0;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">⚡</div>
+    <div class="header-text">
+      <div class="header-title">Бесплатный доступ к Telegram</div>
+      <div class="header-sub">Пошаговая инструкция подключения</div>
+    </div>
+  </div>
+
+  <!-- Step 1: Download Happ -->
+  <div class="step-label">
+    <div class="step-num">1</div>
+    <div class="step-title">Скачайте и установите Happ</div>
+  </div>
+  <div class="card">
+    <p class="hint">Happ — бесплатное приложение для подключения к VPN. Доступно на всех платформах.</p>
+    <a class="btn-dl" href="https://www.happ.su/main/ru" target="_blank" rel="noopener">
+      <span>🌐</span>
+      <span>Открыть сайт Happ</span>
+    </a>
+    <div class="notice" style="margin-top:12px">
+      <span class="notice-icon">ℹ️</span>
+      <span class="notice-text">Выберите свою платформу на сайте и скачайте установочный файл. Android: Play Market или APK. iOS: App Store.</span>
+    </div>
+  </div>
+
+  <!-- Step 2: Subscription -->
+  <div class="step-label">
+    <div class="step-num">2</div>
+    <div class="step-title">Скопируйте бесплатную подписку</div>
+  </div>
+  <div class="card">
+    <p class="hint">Нажмите кнопку ниже, чтобы скопировать ключ подписки — он понадобится на следующем шаге.</p>
+    <div class="sub-block">
+      <div class="sub-label">Ключ подписки (VLESS)</div>
+      <div class="sub-text-wrap" title="Наведите, чтобы увидеть">
+        <div class="sub-text" id="subText">vless://e375fa1c-3442-4d92-87fb-0bc5bb8efffa@77.239.104.89:443?type=tcp&encryption=none&security=reality&pbk=sxYdGJ4_ESQbtDolh0Kv29tJRMPU468fuoSqjMoQ2ho&fp=chrome&sni=apple.com&sid=c3&spx=%2F&pqv=aYTb1G52wFnYoJCq1X5RTlpt-f8u0rKWaafQdZkN9RUEr7fEq_NQKoYDodMdkiVzznksVvDgVcuWNaIDcJlsF8BoJRmjIdFag5IPAlnnXA6ZQ66WjbksDzbREGBg6Nbay44nPuFg3Fr51sqYeigkWfMghKFRLlt93ssNJsER1QYRy_APD934akyhudxm0kCfXZ6S356yGeb3T2GraK2MOMThJsrZyOrq0ocq1NiqNVMPe2MXg9oY_ldYO2XoJc-GkleeoTZoIfM7a2xm4fNUUisX0Sp2MHhLNVCuzB99pqiQAdCsACbdP6Ejfqvtrj_UDdnLHHHKyGoY5YbZac9iXiA2Ie-AVfdouw_e6e0cehQ8lHhJoe7sCF9QznusfAmdAr1dje7beevpulXJMx0QJAerVMklg1uGRGXAL6t_OoFBvgdeIS6pvrKVnHQD2VevdAV0ImsHdhoPkNqH41KU7lf4AGbBjt2SlVxrAPzLTvqeKecK7ZeIVOzoYz3MHuh4fyaMbc0KQQ6xqSi2R3ExriO6h6a45E0IE9MWwrpIZdt7tSlc1J5_V-yjAuILxtOpa0ApYp-y2aqVlOBX1gfA5iES_rpTS6_PAnjE_PbT1mHiuTSwnRq-XQuBpwZ1Tr_CdvyKS6RXXh_yqpamG-AVKksg-4-rjPOfSRnSm2FO2T48akSNzMW_zD1hdxENqgEkFGhNLe3jFxPsvTvmB26a0LEsrEc7z_nPz2ZXBJPQEILuOu4333WVP2pwo60IXURo_hoYCgmZ1BRh0c6yO0AzJ4bEwSr_pT_DJP5IoqwtMkaQblJdf2I64lTHZGBcw3e5-dsFEY65VORvalbUIA2MwhhcKpSX235kDsg8JduqLTL_jr1VGR5fQ2Y9hC92XsIlq74NMkTP5-E1XKTwUdTwZCFuCWo12BISMEeV7TrMpmXfoNu5KO-bGRSbCRikzByWdMHufleRt4KbE0MedKZ6syTOS9_nlwXwHZUYCXHmza3A7foCg2rDGlUA3scxpt3rB40q9KAEJhtmYfmJcdu6aetCySZIBpq1f3yLonuM4iq5qeyrO5_ptAbr5hCGrv5R4c58Ke0g0LGew6jRYss-_8sdB7fm1b20gWZ7eE1fDEqrOLxQa2kAIiN0zPeXA1mJBniwerfSTKbQ11ax28KQ6kEg2hMm-ILhEXGs-SYj_dvOZcaMZK5DYjW3vzTrbEUr3Px6RCJf2EdNbQZEPyLWzbraFlOBlMV_NzAxEYCdGCwUHy8Uj8d2nYIr1hIZg5qOzJrr0VMdGNqYsy0v7HBeDmQaKFh7Lvte88b6MPFbA1rAQyjbWrCo5pSvRvYHeKKDssjjXduDBYVT_C-8YA3KQHT_jhtti8EPTHk35oyInra4iJdabw0C4RxE3lIt47oZyaVCCxhdInTHlneodSnCux0IpisFCPSTren5xHX6MJXv1aZk1syFCKyKwU-UJeiKouR3fb5BUybI54qXNBBJTvBLS4h_Toj3E3KZLuFL__Kj5QR5k_iJYHEKC6QWrlqd4PZbsXbbhrnTige-NuJOGoRF-R51dEtesWz8oEk_rC0uIX91ybQHZ1kea1_0QbX9OXk5eapeiHAsjnBG6KKI8ZC3Dd4KqrtnU_ZzbO1wP18QbmQsWXERm4Lb3hW3YiTP9t190my-khOYkiALKKrRItu4LmooxZRXErRYoUUng--eYJxoamufTfYADphzjNkAVBtko_7L322kIxWb37hMOw8A2hl1rAUL0_BkaTB_doF-vxkk6qQ_BbIjc-yDXdIws0vGMQfwGU6tsnIuHn0LRb2orUlu2ZiXnTJaFs3uel6uVKI6SMtFLcwWukG_-OBlqj5bj3QZ5wZ7I_bdhHzjCWOGmuHv96qphRKtwPtNDqB5oKY17_Ehn-9mFanF_kmLbyrVAMWAahcFzv8IgkJw2u_Zl8behxy0U9j816ymp5EPr-L16qvjyKwOD6_DkUGhmuJKv2vlaurHxkuvd_yBcVAYuhoygO0EehQi9sh7Ftkjv8bh01NjQpYslhvG6cuZmaWVRLKCq7thrlb4uUApAO2KdKRozq1KdfE_9yZ2ReFXcq6T9NY9Y1ARiDUVwrm3RzG2zdndlgsIsBfmVIoP2aFE6nXF5recKv8-XxqevUCwEValxt4gXWudzKI0qmglgIE3w8gyIeFGNHwfKe2v20XxOgNv6Ep7oovv2XoEsYDubLFP-HJytEJQhy5MQD3Bfzbq56MobdAy0FmKJBynQbCrb47DFogeJekSphzrHPCQCsLHHOYTnVBLcq8DRUu9QTOiOJtwAukBzKwVhK6Ln7GKcr4bFqPc-9zHgEMlL3LvyHZK-FWjdOKGXs79XxiKhrC2Fz2UXqnnDdPZV8LTGTMoBVUWeh_pQjA7lEsDvZPi0CFkZ_2jOruhaoCyyXOAstERuLZbC-E8q8amfdP-pQM-f5TJw3S9VWDq8OxkEiHsIk2JKXc_ErSNefTD0IB7o3drdUrilCVjvhro3LCDLta4hyMK9-pRK6jI9GNBOS09AiTiM13lcGfJewBdKsG-fIaFm-u-16eXBLCtfj0Z2Trz_pJGv-yzibIIe5vjKag&flow=xtls-rprx-vision#NinjaVPN-free_tg_for_all</div>
+        <div class="sub-overlay">🔒 Наведите, чтобы увидеть</div>
+      </div>
+      <button class="btn-copy" id="copyBtn" type="button">
+        <span>📋</span>
+        <span id="copyLabel">Скопировать ключ</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Step 3: Add to app -->
+  <div class="step-label">
+    <div class="step-num">3</div>
+    <div class="step-title">Добавьте подписку в Happ</div>
+  </div>
+  <div class="card">
+    <div class="instr-step">
+      <div class="instr-num">1</div>
+      <div class="instr-body">
+        <div class="instr-text">Откройте приложение <strong>Happ</strong> на вашем устройстве.</div>
+      </div>
+    </div>
+    <div class="instr-step">
+      <div class="instr-num">2</div>
+      <div class="instr-body">
+        <div class="instr-text">
+          Нажмите кнопку <code>Из буфера</code> (<code>Вставить</code>) — она находится в левом нижнем углу экрана.
+        </div>
+        <div class="img-wrap" style="margin-top:12px">
+          <img src="/app/img/install/ios/happ/ios_happ_step_1.webp" alt="Кнопка Из буфера в Happ" loading="lazy">
+        </div>
+      </div>
+    </div>
+    <div class="instr-step">
+      <div class="instr-num">3</div>
+      <div class="instr-body">
+        <div class="instr-text">Сервер появится в списке. Нажмите на него, чтобы выбрать.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 4: Enable VPN -->
+  <div class="step-label">
+    <div class="step-num">4</div>
+    <div class="step-title">Включите VPN</div>
+  </div>
+  <div class="card">
+    <div class="instr-step">
+      <div class="instr-num">1</div>
+      <div class="instr-body">
+        <div class="instr-text">Убедитесь, что нужный сервер выбран в списке.</div>
+      </div>
+    </div>
+    <div class="instr-step">
+      <div class="instr-num">2</div>
+      <div class="instr-body">
+        <div class="instr-text">В верхней части экрана нажмите на переключатель — переведите его в положение <strong>ВКЛ</strong>. VPN активирован.</div>
+      </div>
+    </div>
+    <div class="instr-step">
+      <div class="instr-num">3</div>
+      <div class="instr-body">
+        <div class="instr-text">Чтобы отключить VPN, нажмите кнопку <strong>«Пауза»</strong>.</div>
+        <div class="img-wrap" style="margin-top:12px; max-width:180px">
+          <img src="/app/assets/images/ios_happ_step_2-7b54c99772db80fa924ab985b76c19bf.jpg" alt="Переключатель VPN в Happ" loading="lazy">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 5: Buy subscription -->
+  <div class="step-label">
+    <div class="step-num">5</div>
+    <div class="step-title">Купите полную подписку</div>
+  </div>
+  <div class="cta-block">
+    <div class="cta-icon">🤖</div>
+    <div class="cta-title">NinjaVPN — оформить подписку</div>
+    <div class="cta-desc">
+      Бесплатный ключ имеет ограничения по скорости и сроку. Для безлимитного доступа оформите подписку через нашего Telegram-бота — это займёт меньше минуты.
+    </div>
+    <a class="btn-bot" href="https://t.me/NetNinjaVPN_bot" target="_blank" rel="noopener">
+      <span>✈️</span>
+      <span>Открыть бота в Telegram</span>
+    </a>
+  </div>
+
+</div>
+
+<script>
+  const VLESS = document.getElementById("subText").textContent.trim();
+
+  async function copyToClipboard(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.cssText = "position:fixed;left:-9999px;top:-9999px;opacity:0";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        return ok;
+      } catch {
+        return false;
+      }
+    }
+  }
+
+  document.getElementById("copyBtn").addEventListener("click", async () => {
+    const btn = document.getElementById("copyBtn");
+    const label = document.getElementById("copyLabel");
+    const ok = await copyToClipboard(VLESS);
+    if (ok) {
+      btn.classList.add("ok");
+      label.textContent = "Скопировано!";
+      setTimeout(() => {
+        btn.classList.remove("ok");
+        label.textContent = "Скопировать ключ";
+      }, 2500);
+    }
+  });
+</script>
+</body>
+</html>
