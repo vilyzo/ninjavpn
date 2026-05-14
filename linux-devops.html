@@ -1,0 +1,2099 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linux для DevOps</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Unbounded:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e17;
+    --surface: #111827;
+    --border: #1e2d45;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --accent3: #10b981;
+    --warn: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --code-bg: #0d1117;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #0a0e17 0%, #111827 50%, #0f172a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 60px 40px 50px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(0,212,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: 40px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(124,58,237,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(0,212,255,0.1);
+    border: 1px solid rgba(0,212,255,0.3);
+    color: var(--accent);
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .badge::before { content: '●'; font-size: 8px; animation: blink 1.5s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+  h1 span { color: var(--accent); }
+  .hero-sub {
+    color: var(--muted);
+    font-size: 13px;
+    max-width: 600px;
+  }
+
+  /* STATS BAR */
+  .stats {
+    display: flex; gap: 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .stat {
+    flex: 1; padding: 14px 20px;
+    border-right: 1px solid var(--border);
+    text-align: center;
+  }
+  .stat:last-child { border-right: none; }
+  .stat-num {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 20px; font-weight: 700;
+    color: var(--accent);
+  }
+  .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* CONTENT */
+  .container { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
+
+  /* CATEGORY */
+  .category {
+    margin-bottom: 50px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    animation: fadeUp 0.5s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .category:nth-child(1) { animation-delay: 0.05s; }
+  .category:nth-child(2) { animation-delay: 0.1s; }
+  .category:nth-child(3) { animation-delay: 0.15s; }
+  .category:nth-child(4) { animation-delay: 0.2s; }
+  .category:nth-child(5) { animation-delay: 0.25s; }
+  .category:nth-child(6) { animation-delay: 0.3s; }
+  .category:nth-child(7) { animation-delay: 0.35s; }
+
+  .cat-header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 18px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .cat-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .cat-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 14px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .cat-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* COMMANDS GRID */
+  .commands { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+  .cmd-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .cmd-block:hover { border-color: rgba(0,212,255,0.3); }
+
+  .cmd-top {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .cmd-name {
+    font-size: 15px; font-weight: 700;
+    color: var(--accent);
+    min-width: 80px;
+    padding-top: 1px;
+  }
+  .cmd-theory { font-size: 12px; color: #94a3b8; line-height: 1.6; }
+
+  /* CODE BLOCK */
+  .code-section { padding: 12px 16px; }
+  .code-label {
+    font-size: 9px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+  pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .prompt { color: var(--accent3); }
+  .cmd-text { color: #f8fafc; }
+  .comment { color: var(--muted); }
+  .flag { color: var(--warn); }
+  .path { color: #c084fc; }
+  .output-text { color: #64748b; font-style: italic; }
+
+  /* FLAGS */
+  .flags-section {
+    padding: 10px 16px 14px;
+    border-top: 1px solid var(--border);
+  }
+  .flags-label {
+    font-size: 9px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  .flags-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .flag-pill {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.2);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 11px;
+  }
+  .flag-key { color: var(--warn); font-weight: 700; }
+  .flag-val { color: var(--muted); }
+
+  /* COLORS per category */
+  .c1 .cat-icon { background: rgba(0,212,255,0.1); }
+  .c2 .cat-icon { background: rgba(16,185,129,0.1); }
+  .c3 .cat-icon { background: rgba(124,58,237,0.1); }
+  .c4 .cat-icon { background: rgba(245,158,11,0.1); }
+  .c5 .cat-icon { background: rgba(239,68,68,0.1); }
+  .c6 .cat-icon { background: rgba(59,130,246,0.1); }
+  .c7 .cat-icon { background: rgba(236,72,153,0.1); }
+
+  .c1 .cat-title { color: var(--accent); }
+  .c2 .cat-title { color: var(--accent3); }
+  .c3 .cat-title { color: #a78bfa; }
+  .c4 .cat-title { color: var(--warn); }
+  .c5 .cat-title { color: #f87171; }
+  .c6 .cat-title { color: #60a5fa; }
+  .c7 .cat-title { color: #f472b6; }
+
+  /* TIP BOX */
+  .tip {
+    display: flex; gap: 12px;
+    background: rgba(16,185,129,0.07);
+    border: 1px solid rgba(16,185,129,0.2);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin: 0 20px 20px;
+    font-size: 12px; color: #6ee7b7;
+  }
+  .tip-icon { font-size: 16px; flex-shrink: 0; }
+
+  /* WARNING BOX */
+  .warn-box {
+    display: flex; gap: 12px;
+    background: rgba(239,68,68,0.07);
+    border: 1px solid rgba(239,68,68,0.25);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin: 0 20px 20px;
+    font-size: 12px; color: #fca5a5;
+  }
+
+  /* INTERVIEW CASE BOX */
+  .case-box {
+    display: flex; gap: 12px;
+    background: rgba(124,58,237,0.07);
+    border: 1px solid rgba(124,58,237,0.25);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin: 0 20px 20px;
+    font-size: 12px; color: #c4b5fd;
+  }
+  .case-box strong { color: #ddd6fe; }
+
+  /* CODE INLINE */
+  code {
+    background: rgba(0,212,255,0.08);
+    border: 1px solid rgba(0,212,255,0.15);
+    color: var(--accent);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .warn-box code { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.2); color: #fca5a5; }
+  .case-box code { background: rgba(124,58,237,0.12); border-color: rgba(124,58,237,0.2); color: #c4b5fd; }
+  .tip code { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.2); color: #6ee7b7; }
+
+  /* RUNBOOK */
+  .runbook {
+    margin: 0 20px 20px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+  }
+  .runbook-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: var(--warn);
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .runbook-steps { counter-reset: step; }
+  .runbook-step {
+    counter-increment: step;
+    position: relative;
+    padding: 8px 0 8px 36px;
+    border-bottom: 1px dashed rgba(100,116,139,0.2);
+    font-size: 12px;
+    color: #cbd5e1;
+  }
+  .runbook-step:last-child { border-bottom: none; }
+  .runbook-step::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: 8px;
+    width: 24px; height: 24px;
+    background: rgba(245,158,11,0.15);
+    border: 1px solid var(--warn);
+    color: var(--warn);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+  }
+  .runbook-step strong { color: var(--accent); }
+
+  /* TABLE */
+  .table-wrap {
+    margin: 0 20px 20px;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+  th, td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    background: var(--surface);
+    color: var(--accent);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+  td { color: #cbd5e1; }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { color: var(--warn); font-weight: 700; }
+
+  /* TOC */
+  .toc {
+    margin: 0 0 40px;
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .toc-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px;
+  }
+  .toc a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 12px;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--code-bg);
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .toc a:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateX(2px);
+  }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 30px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 11px;
+  }
+  footer span { color: var(--accent); }
+
+  @media (max-width: 600px) {
+    .hero { padding: 40px 20px 30px; }
+    .stats { flex-wrap: wrap; }
+    .stat { min-width: 50%; }
+    .cmd-top { flex-direction: column; gap: 6px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="badge">Senior DevOps · Interview Prep</div>
+  <h1>Linux команды<br>для <span>DevOps</span></h1>
+  <p class="hero-sub">Полный справочник: теория, примеры, ключи — всё что нужно для собеседования</p>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-num">13</div><div class="stat-label">Категорий</div></div>
+  <div class="stat"><div class="stat-num">90+</div><div class="stat-label">Команд</div></div>
+  <div class="stat"><div class="stat-num">200+</div><div class="stat-label">Флагов</div></div>
+  <div class="stat"><div class="stat-num">15+</div><div class="stat-label">Runbook-кейсов</div></div>
+  <div class="stat"><div class="stat-num">∞</div><div class="stat-label">Профита</div></div>
+</div>
+
+<div class="container">
+
+  <!-- TOC -->
+  <div class="toc">
+    <div class="toc-title">📑 Оглавление</div>
+    <div class="toc-grid">
+      <a href="#cat-fs">📁 Файловая система</a>
+      <a href="#cat-proc">⚙️ Процессы и мониторинг</a>
+      <a href="#cat-net">🌐 Сеть и диагностика</a>
+      <a href="#cat-text">🔍 Текст и логи</a>
+      <a href="#cat-perms">🔐 Права и пользователи</a>
+      <a href="#cat-disk">💾 Диск и ресурсы</a>
+      <a href="#cat-systemd">🚀 Systemd, SSH, архивы</a>
+      <a href="#cat-debug">🧠 Advanced Debugging</a>
+      <a href="#cat-redir">🔀 Pipes и редиректы</a>
+      <a href="#cat-cron">⏰ Cron и timers</a>
+      <a href="#cat-sec">🛡️ Безопасность и firewall</a>
+      <a href="#cat-perf">📊 Performance & I/O</a>
+      <a href="#cat-runbook">🚨 Production Runbook</a>
+    </div>
+  </div>
+
+  <!-- 1. ФАЙЛОВАЯ СИСТЕМА -->
+  <div class="category c1" id="cat-fs">
+    <div class="cat-header">
+      <div class="cat-icon">📁</div>
+      <div>
+        <div class="cat-title">Файловая система</div>
+        <div class="cat-desc">Навигация, просмотр, создание, удаление файлов и директорий</div>
+      </div>
+    </div>
+    <div class="commands">
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">ls</div>
+          <div class="cmd-theory">Список файлов и директорий. Самая частая команда — используется постоянно для навигации и аудита содержимого папок.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">ls</span>                      <span class="comment"># простой список</span>
+<span class="prompt">$</span> <span class="cmd-text">ls <span class="flag">-la</span></span>                  <span class="comment"># детально + скрытые файлы</span>
+<span class="prompt">$</span> <span class="cmd-text">ls <span class="flag">-lh</span> <span class="path">/var/log/</span></span>       <span class="comment"># размеры в читаемом виде</span>
+<span class="prompt">$</span> <span class="cmd-text">ls <span class="flag">-lt</span></span>                  <span class="comment"># сортировка по времени изменения</span>
+<span class="prompt">$</span> <span class="cmd-text">ls <span class="flag">-lS</span></span>                  <span class="comment"># сортировка по размеру (большие сверху)</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Ключи</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">-l</span><span class="flag-val">длинный формат</span></div>
+            <div class="flag-pill"><span class="flag-key">-a</span><span class="flag-val">скрытые файлы</span></div>
+            <div class="flag-pill"><span class="flag-key">-h</span><span class="flag-val">читаемый размер</span></div>
+            <div class="flag-pill"><span class="flag-key">-t</span><span class="flag-val">сортировка по дате</span></div>
+            <div class="flag-pill"><span class="flag-key">-S</span><span class="flag-val">сортировка по размеру</span></div>
+            <div class="flag-pill"><span class="flag-key">-R</span><span class="flag-val">рекурсивно</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">find</div>
+          <div class="cmd-theory">Поиск файлов по имени, размеру, времени изменения, владельцу и т.д. Незаменим для аудита и автоматизации. Помни: <code>-exec ... \;</code> вызывает команду для каждого файла, а <code>-exec ... +</code> группирует — в разы быстрее.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">find <span class="path">/etc</span> <span class="flag">-name</span> "*.conf"</span>          <span class="comment"># найти все .conf файлы</span>
+<span class="prompt">$</span> <span class="cmd-text">find <span class="path">/var</span> <span class="flag">-size</span> +100M</span>            <span class="comment"># файлы > 100MB</span>
+<span class="prompt">$</span> <span class="cmd-text">find <span class="path">.</span> <span class="flag">-mtime</span> -1</span>                  <span class="comment"># изменённые за последние 24ч</span>
+<span class="prompt">$</span> <span class="cmd-text">find <span class="path">/tmp</span> <span class="flag">-type</span> f <span class="flag">-delete</span></span>        <span class="comment"># найти и удалить файлы в /tmp</span>
+<span class="prompt">$</span> <span class="cmd-text">find <span class="path">.</span> <span class="flag">-perm</span> 777</span>                  <span class="comment"># файлы с правами 777</span>
+<span class="prompt">$</span> <span class="cmd-text">find <span class="path">/var/log</span> <span class="flag">-mtime</span> +30 <span class="flag">-exec</span> rm {} +</span> <span class="comment"># удалить старше 30 дней (быстро)</span>
+<span class="prompt">$</span> <span class="cmd-text">find <span class="path">.</span> <span class="flag">-type</span> f <span class="flag">-name</span> "*.log" <span class="flag">-exec</span> gzip {} \;</span>  <span class="comment"># сжать каждый</span>
+<span class="prompt">$</span> <span class="cmd-text">find <span class="path">.</span> <span class="flag">-empty</span></span>                     <span class="comment"># пустые файлы/папки</span>
+<span class="prompt">$</span> <span class="cmd-text">find <span class="path">.</span> <span class="flag">-user</span> deploy <span class="flag">-group</span> www-data</span>  <span class="comment"># по владельцу и группе</span>
+<span class="prompt">$</span> <span class="cmd-text">find <span class="path">.</span> <span class="flag">-newer</span> /tmp/marker</span>         <span class="comment"># изменённые после marker-файла</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Ключи</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">-name</span><span class="flag-val">по имени (glob)</span></div>
+            <div class="flag-pill"><span class="flag-key">-iname</span><span class="flag-val">регистронезависимо</span></div>
+            <div class="flag-pill"><span class="flag-key">-type</span><span class="flag-val">f=файл, d=папка, l=link</span></div>
+            <div class="flag-pill"><span class="flag-key">-size</span><span class="flag-val">+/-N[kMG]</span></div>
+            <div class="flag-pill"><span class="flag-key">-mtime/-atime</span><span class="flag-val">дни modify/access</span></div>
+            <div class="flag-pill"><span class="flag-key">-perm</span><span class="flag-val">по правам</span></div>
+            <div class="flag-pill"><span class="flag-key">-user/-group</span><span class="flag-val">владелец</span></div>
+            <div class="flag-pill"><span class="flag-key">-exec ... +</span><span class="flag-val">группа аргументов</span></div>
+            <div class="flag-pill"><span class="flag-key">-delete</span><span class="flag-val">удалить найденное</span></div>
+            <div class="flag-pill"><span class="flag-key">-maxdepth N</span><span class="flag-val">глубина поиска</span></div>
+            <div class="flag-pill"><span class="flag-key">-prune</span><span class="flag-val">исключить ветку</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">cp / mv / rm</div>
+          <div class="cmd-theory">Базовые операции с файлами: копирование, перемещение/переименование, удаление. Часто используются в скриптах автоматизации.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">cp <span class="flag">-r</span> <span class="path">/src/</span> <span class="path">/dst/</span></span>             <span class="comment"># рекурсивное копирование</span>
+<span class="prompt">$</span> <span class="cmd-text">cp <span class="flag">-p</span> file.conf file.conf.bak</span>  <span class="comment"># копия с сохранением прав</span>
+<span class="prompt">$</span> <span class="cmd-text">mv <span class="path">oldname</span> <span class="path">newname</span></span>            <span class="comment"># переименование</span>
+<span class="prompt">$</span> <span class="cmd-text">rm <span class="flag">-rf</span> <span class="path">/tmp/cache/</span></span>           <span class="comment"># удалить рекурсивно без подтверждения</span>
+<span class="prompt">$</span> <span class="cmd-text">rm <span class="flag">-i</span> *.log</span>                    <span class="comment"># с подтверждением каждого файла</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Ключи (cp/rm)</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">-r</span><span class="flag-val">рекурсивно</span></div>
+            <div class="flag-pill"><span class="flag-key">-f</span><span class="flag-val">без подтверждения</span></div>
+            <div class="flag-pill"><span class="flag-key">-i</span><span class="flag-val">интерактивно</span></div>
+            <div class="flag-pill"><span class="flag-key">-p</span><span class="flag-val">сохранить права/дату</span></div>
+            <div class="flag-pill"><span class="flag-key">-v</span><span class="flag-val">verbose вывод</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">ln</div>
+          <div class="cmd-theory">Создание ссылок. <strong>Hard link</strong> — это второе имя для того же inode (нельзя через FS-границы и на директории). <strong>Symlink</strong> — отдельный файл-указатель на путь.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">ln file hardlink</span>                  <span class="comment"># hard link</span>
+<span class="prompt">$</span> <span class="cmd-text">ln <span class="flag">-s</span> <span class="path">/opt/app-v1.2</span> <span class="path">/opt/app</span></span>    <span class="comment"># symlink (классика deploy)</span>
+<span class="prompt">$</span> <span class="cmd-text">ln <span class="flag">-sfn</span> <span class="path">/opt/app-v1.3</span> <span class="path">/opt/app</span></span>  <span class="comment"># атомарно обновить symlink (zero-downtime)</span>
+<span class="prompt">$</span> <span class="cmd-text">readlink <span class="flag">-f</span> <span class="path">/opt/app</span></span>             <span class="comment"># куда указывает (абсолютный путь)</span>
+<span class="prompt">$</span> <span class="cmd-text">stat file</span>                          <span class="comment"># inode, время, права, size</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Ключи</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">-s</span><span class="flag-val">symbolic link</span></div>
+            <div class="flag-pill"><span class="flag-key">-f</span><span class="flag-val">перезаписать существующий</span></div>
+            <div class="flag-pill"><span class="flag-key">-n</span><span class="flag-val">не разыменовывать target</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">xargs</div>
+          <div class="cmd-theory">Превращает stdin в аргументы команды. Связка <code>find ... | xargs ...</code> мощнее <code>-exec</code>, особенно с <code>-P</code> (параллелизм).</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">find <span class="path">.</span> <span class="flag">-name</span> "*.log" | xargs rm</span>     <span class="comment"># НЕ безопасно с пробелами в именах</span>
+<span class="prompt">$</span> <span class="cmd-text">find <span class="path">.</span> <span class="flag">-name</span> "*.log" <span class="flag">-print0</span> | xargs <span class="flag">-0</span> rm</span>  <span class="comment"># безопасно (NUL-разделитель)</span>
+<span class="prompt">$</span> <span class="cmd-text">cat urls.txt | xargs <span class="flag">-n</span> 1 <span class="flag">-P</span> 8 curl <span class="flag">-sO</span></span>     <span class="comment"># 8 параллельных загрузок</span>
+<span class="prompt">$</span> <span class="cmd-text">echo "1 2 3" | xargs <span class="flag">-I</span> {} echo "PID={}"</span>     <span class="comment"># placeholder {}</span>
+<span class="prompt">$</span> <span class="cmd-text">ls *.bak | xargs <span class="flag">-p</span> rm</span>                <span class="comment"># спросить подтверждение</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Ключи</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">-0</span><span class="flag-val">NUL-разделитель</span></div>
+            <div class="flag-pill"><span class="flag-key">-n N</span><span class="flag-val">N аргументов за раз</span></div>
+            <div class="flag-pill"><span class="flag-key">-P N</span><span class="flag-val">N параллельно</span></div>
+            <div class="flag-pill"><span class="flag-key">-I {}</span><span class="flag-val">placeholder</span></div>
+            <div class="flag-pill"><span class="flag-key">-p</span><span class="flag-val">подтверждение</span></div>
+            <div class="flag-pill"><span class="flag-key">-t</span><span class="flag-val">verbose (echo cmd)</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">file / which / type</div>
+          <div class="cmd-theory">Идентификация файлов и команд. <code>file</code> определяет тип по magic-байтам (не по расширению). <code>which</code> — путь к бинарю в $PATH. <code>type</code> — alias/builtin/file.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">file mystery.bin</span>                   <span class="comment"># ELF / ASCII / image / ...</span>
+<span class="prompt">$</span> <span class="cmd-text">which docker</span>                       <span class="comment"># /usr/bin/docker</span>
+<span class="prompt">$</span> <span class="cmd-text">type ll</span>                            <span class="comment"># ll is aliased to 'ls -la'</span>
+<span class="prompt">$</span> <span class="cmd-text">command <span class="flag">-v</span> docker</span>                  <span class="comment"># POSIX-вариант (для скриптов)</span></pre>
+        </div>
+      </div>
+
+    </div>
+    <div class="tip">
+      <span class="tip-icon">💡</span>
+      <span>На собеседовании часто спрашивают разницу между <strong>hard link</strong> и <strong>symlink</strong>. Hard link — другое имя для того же inode. Symlink — указатель на путь. Создаются через <code>ln file hardlink</code> и <code>ln -s file symlink</code>.</span>
+    </div>
+    <div class="case-box">
+      <span class="tip-icon">🎤</span>
+      <span><strong>Кейс на интервью:</strong> "<code>df</code> говорит, что диск полный, но <code>du</code> показывает мало места — что делать?" Ответ: 1) проверь inode-исчерпание <code>df -i</code>; 2) ищи удалённые, но открытые файлы <code>lsof | grep deleted</code> (нужен restart процесса или <code>: &gt; /proc/PID/fd/N</code>); 3) скрытые mount points поверх — <code>du -x</code> с <code>--one-file-system</code>.</span>
+    </div>
+  </div>
+
+  <!-- 2. ПРОЦЕССЫ -->
+  <div class="category c2" id="cat-proc">
+    <div class="cat-header">
+      <div class="cat-icon">⚙️</div>
+      <div>
+        <div class="cat-title">Процессы и мониторинг</div>
+        <div class="cat-desc">Просмотр, управление и отладка процессов в системе</div>
+      </div>
+    </div>
+    <div class="commands">
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">ps</div>
+          <div class="cmd-theory">Снимок текущих процессов. В связке с grep — мощный инструмент поиска. <strong>RSS</strong> — реально занятая RAM (KB), <strong>VSZ</strong> — виртуальная (включая swap и mmap). <strong>STAT</strong>: R=running, S=sleeping, D=uninterruptible (часто IO-wait), Z=zombie, T=stopped.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">ps aux</span>                          <span class="comment"># все процессы всех пользователей</span>
+<span class="prompt">$</span> <span class="cmd-text">ps aux | grep nginx</span>             <span class="comment"># найти процессы nginx</span>
+<span class="prompt">$</span> <span class="cmd-text">ps <span class="flag">-ef</span> <span class="flag">--forest</span></span>                <span class="comment"># дерево процессов</span>
+<span class="prompt">$</span> <span class="cmd-text">ps <span class="flag">-p</span> 1234 <span class="flag">-o</span> pid,ppid,cmd,%cpu,%mem</span>  <span class="comment"># инфо о конкретном PID</span>
+<span class="prompt">$</span> <span class="cmd-text">ps aux <span class="flag">--sort=-%mem</span> | head</span>      <span class="comment"># топ-10 по памяти</span>
+<span class="prompt">$</span> <span class="cmd-text">ps aux <span class="flag">--sort=-%cpu</span> | head</span>      <span class="comment"># топ-10 по CPU</span>
+<span class="prompt">$</span> <span class="cmd-text">ps <span class="flag">-eo</span> pid,user,stat,wchan,cmd | grep " D "</span>  <span class="comment"># процессы в uninterruptible sleep</span>
+<span class="prompt">$</span> <span class="cmd-text">pgrep <span class="flag">-fa</span> nginx</span>                    <span class="comment"># PIDs + cmd по имени</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Ключи</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">a</span><span class="flag-val">все пользователи</span></div>
+            <div class="flag-pill"><span class="flag-key">u</span><span class="flag-val">user-ориентированный</span></div>
+            <div class="flag-pill"><span class="flag-key">x</span><span class="flag-val">без tty</span></div>
+            <div class="flag-pill"><span class="flag-key">-e</span><span class="flag-val">все процессы</span></div>
+            <div class="flag-pill"><span class="flag-key">--forest</span><span class="flag-val">дерево</span></div>
+            <div class="flag-pill"><span class="flag-key">-o</span><span class="flag-val">формат вывода</span></div>
+            <div class="flag-pill"><span class="flag-key">--sort</span><span class="flag-val">сортировка</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">top / htop</div>
+          <div class="cmd-theory">Интерактивный мониторинг системы в реальном времени. htop — улучшенная версия с цветным интерфейсом и удобным управлением.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">top</span>                          <span class="comment"># запустить мониторинг</span>
+<span class="prompt">$</span> <span class="cmd-text">top <span class="flag">-u</span> www-data</span>             <span class="comment"># только процессы пользователя</span>
+<span class="prompt">$</span> <span class="cmd-text">top <span class="flag">-b</span> <span class="flag">-n</span> 1 | head -20</span>     <span class="comment"># batch-режим (для скриптов)</span>
+<span class="prompt">$</span> <span class="cmd-text">htop <span class="flag">-d</span> 5</span>                    <span class="comment"># обновление каждые 0.5 сек</span>
+<span class="output-text">  # В top: P — сорт. по CPU, M — по памяти, k — kill, q — выход</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Ключи top</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">-u</span><span class="flag-val">фильтр по юзеру</span></div>
+            <div class="flag-pill"><span class="flag-key">-b</span><span class="flag-val">batch режим</span></div>
+            <div class="flag-pill"><span class="flag-key">-n</span><span class="flag-val">число итераций</span></div>
+            <div class="flag-pill"><span class="flag-key">-d</span><span class="flag-val">интервал (деситые)</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">kill / pkill</div>
+          <div class="cmd-theory">Отправка сигналов процессам. SIGTERM (15) — вежливое завершение. SIGKILL (9) — принудительное. pkill позволяет убивать по имени.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">kill <span class="flag">-15</span> 1234</span>            <span class="comment"># SIGTERM — дать шанс завершиться</span>
+<span class="prompt">$</span> <span class="cmd-text">kill <span class="flag">-9</span> 1234</span>             <span class="comment"># SIGKILL — убить немедленно</span>
+<span class="prompt">$</span> <span class="cmd-text">pkill <span class="flag">-f</span> "python app.py"</span>  <span class="comment"># убить по полному имени команды</span>
+<span class="prompt">$</span> <span class="cmd-text">kill <span class="flag">-HUP</span> $(cat /var/run/nginx.pid)</span>  <span class="comment"># перечитать конфиг nginx</span>
+<span class="prompt">$</span> <span class="cmd-text">killall <span class="flag">-u</span> baduser</span>        <span class="comment"># убить все процессы пользователя</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Сигналы</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">-1 HUP</span><span class="flag-val">перечитать конфиг</span></div>
+            <div class="flag-pill"><span class="flag-key">-2 INT</span><span class="flag-val">прервать (Ctrl+C)</span></div>
+            <div class="flag-pill"><span class="flag-key">-9 KILL</span><span class="flag-val">принудительно</span></div>
+            <div class="flag-pill"><span class="flag-key">-15 TERM</span><span class="flag-val">мягкое завершение</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">nice / renice / ionice</div>
+          <div class="cmd-theory">Управление приоритетом процессов. <strong>nice</strong>-уровень от -20 (макс. приоритет) до +19 (минимум). Только root может понижать (давать больше CPU). <strong>ionice</strong> — приоритет I/O, критично для бэкапов на загруженной системе.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">nice <span class="flag">-n</span> 10 ./backup.sh</span>             <span class="comment"># запустить с пониженным приоритетом</span>
+<span class="prompt">$</span> <span class="cmd-text">renice <span class="flag">-n</span> 5 <span class="flag">-p</span> 1234</span>               <span class="comment"># изменить приоритет работающего</span>
+<span class="prompt">$</span> <span class="cmd-text">renice <span class="flag">-n</span> 10 <span class="flag">-u</span> user1</span>              <span class="comment"># все процессы пользователя</span>
+<span class="prompt">$</span> <span class="cmd-text">ionice <span class="flag">-c</span> 3 rsync <span class="path">/data/</span> <span class="path">/backup/</span></span>   <span class="comment"># idle I/O — не мешает другим</span>
+<span class="prompt">$</span> <span class="cmd-text">ionice <span class="flag">-c</span> 2 <span class="flag">-n</span> 7 <span class="flag">-p</span> 1234</span>           <span class="comment"># best-effort, lowest priority</span>
+<span class="prompt">$</span> <span class="cmd-text">chrt <span class="flag">-f</span> 99 <span class="flag">-p</span> 1234</span>                  <span class="comment"># real-time приоритет (осторожно!)</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">ionice классы</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">-c 1</span><span class="flag-val">real-time</span></div>
+            <div class="flag-pill"><span class="flag-key">-c 2</span><span class="flag-val">best-effort (default)</span></div>
+            <div class="flag-pill"><span class="flag-key">-c 3</span><span class="flag-val">idle (только если свободно)</span></div>
+            <div class="flag-pill"><span class="flag-key">-n 0-7</span><span class="flag-val">priority внутри класса</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">nohup / disown / &amp; / screen / tmux</div>
+          <div class="cmd-theory">Запуск процессов в фоне с отвязкой от терминала. <code>&amp;</code> — в фон, <code>nohup</code> — игнорировать SIGHUP при выходе из ssh. Для интерактивных длинных сессий — <strong>tmux/screen</strong>.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">./long-task.sh &amp;</span>                  <span class="comment"># в фон (текущая сессия)</span>
+<span class="prompt">$</span> <span class="cmd-text">nohup ./long-task.sh &gt; out.log 2&gt;&amp;1 &amp;</span>  <span class="comment"># переживёт logout</span>
+<span class="prompt">$</span> <span class="cmd-text">jobs</span>                              <span class="comment"># фоновые задачи в текущем shell</span>
+<span class="prompt">$</span> <span class="cmd-text">fg %1</span>                             <span class="comment"># вернуть на передний план</span>
+<span class="prompt">$</span> <span class="cmd-text">disown <span class="flag">-h</span> %1</span>                       <span class="comment"># отвязать от shell</span>
+<span class="prompt">$</span> <span class="cmd-text">tmux new <span class="flag">-s</span> deploy</span>                  <span class="comment"># tmux-сессия</span>
+<span class="prompt">$</span> <span class="cmd-text">tmux attach <span class="flag">-t</span> deploy</span>               <span class="comment"># вернуться к сессии</span>
+<span class="output-text">  # tmux: Ctrl+b d — detach, Ctrl+b " — split, Ctrl+b c — new window</span></pre>
+        </div>
+      </div>
+
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Сигнал</th><th>№</th><th>Что делает</th><th>Можно перехватить?</th></tr></thead>
+        <tbody>
+          <tr><td>SIGHUP</td><td>1</td><td>Hangup. Часто = "перечитай конфиг" (nginx, sshd)</td><td>Да</td></tr>
+          <tr><td>SIGINT</td><td>2</td><td>Прерывание (Ctrl+C)</td><td>Да</td></tr>
+          <tr><td>SIGQUIT</td><td>3</td><td>Quit + core dump</td><td>Да</td></tr>
+          <tr><td>SIGKILL</td><td>9</td><td>Принудительное убийство — мгновенно</td><td><strong>Нет</strong></td></tr>
+          <tr><td>SIGUSR1/2</td><td>10/12</td><td>Пользовательские (для своей логики)</td><td>Да</td></tr>
+          <tr><td>SIGTERM</td><td>15</td><td>Запрос на завершение (вежливое)</td><td>Да</td></tr>
+          <tr><td>SIGSTOP</td><td>19</td><td>Приостановить процесс</td><td><strong>Нет</strong></td></tr>
+          <tr><td>SIGCONT</td><td>18</td><td>Продолжить остановленный</td><td>Да</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tip">
+      <span class="tip-icon">💡</span>
+      <span>На интервью: всегда сначала пробуй SIGTERM (-15), и только если процесс не реагирует — SIGKILL (-9). SIGKILL нельзя перехватить или игнорировать.</span>
+    </div>
+    <div class="case-box">
+      <span class="tip-icon">🎤</span>
+      <span><strong>Кейс:</strong> "У процесса статус <code>D</code> (uninterruptible sleep), <code>kill -9</code> не помогает — почему?" Ответ: процесс ждёт I/O в ядре (обычно NFS, повисший диск или kernel bug). SIGKILL доставит сигнал только когда process выйдет из syscall. Решения: дождаться timeout, перемонтировать NFS, ребут. На зомби (<code>Z</code>) <code>kill</code> тоже не действует — нужен kill родителя.</span>
+    </div>
+  </div>
+
+  <!-- 3. СЕТЬ -->
+  <div class="category c3" id="cat-net">
+    <div class="cat-header">
+      <div class="cat-icon">🌐</div>
+      <div>
+        <div class="cat-title">Сеть и диагностика</div>
+        <div class="cat-desc">Подключения, маршруты, порты, трафик</div>
+      </div>
+    </div>
+    <div class="commands">
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">ss / netstat</div>
+          <div class="cmd-theory">Просмотр активных сетевых соединений и открытых портов. ss — современный быстрый аналог netstat (читает из <code>/proc/net</code> напрямую). Критично для отладки сервисов и поиска кто слушает порт.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">ss <span class="flag">-tulnp</span></span>                 <span class="comment"># все слушающие порты с процессами</span>
+<span class="prompt">$</span> <span class="cmd-text">ss <span class="flag">-an</span> | grep :80</span>        <span class="comment"># соединения на порт 80</span>
+<span class="prompt">$</span> <span class="cmd-text">ss <span class="flag">-s</span></span>                     <span class="comment"># статистика соединений</span>
+<span class="prompt">$</span> <span class="cmd-text">ss <span class="flag">-tn</span> state established</span>   <span class="comment"># только установленные TCP</span>
+<span class="prompt">$</span> <span class="cmd-text">ss <span class="flag">-tn</span> state time-wait | wc -l</span>  <span class="comment"># сколько в TIME_WAIT</span>
+<span class="prompt">$</span> <span class="cmd-text">ss <span class="flag">-tnp</span> '( dport = :443 or sport = :443 )'</span>  <span class="comment"># фильтр по порту</span>
+<span class="prompt">$</span> <span class="cmd-text">netstat <span class="flag">-tulnp</span></span>            <span class="comment"># аналог через netstat (старый способ)</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Ключи ss</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">-t</span><span class="flag-val">TCP</span></div>
+            <div class="flag-pill"><span class="flag-key">-u</span><span class="flag-val">UDP</span></div>
+            <div class="flag-pill"><span class="flag-key">-l</span><span class="flag-val">только слушающие</span></div>
+            <div class="flag-pill"><span class="flag-key">-n</span><span class="flag-val">числа без DNS</span></div>
+            <div class="flag-pill"><span class="flag-key">-p</span><span class="flag-val">показать процесс</span></div>
+            <div class="flag-pill"><span class="flag-key">-s</span><span class="flag-val">статистика</span></div>
+            <div class="flag-pill"><span class="flag-key">-x</span><span class="flag-val">unix sockets</span></div>
+            <div class="flag-pill"><span class="flag-key">-4/-6</span><span class="flag-val">IPv4/IPv6</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">curl</div>
+          <div class="cmd-theory">HTTP-клиент для тестирования API, скачивания файлов, диагностики веб-сервисов. Один из главных инструментов DevOps-инженера.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">curl <span class="flag">-I</span> https://example.com</span>           <span class="comment"># только заголовки ответа</span>
+<span class="prompt">$</span> <span class="cmd-text">curl <span class="flag">-X POST</span> <span class="flag">-H</span> "Content-Type: application/json" \
+       <span class="flag">-d</span> '{"key":"val"}' https://api/endpoint</span>  <span class="comment"># POST JSON</span>
+<span class="prompt">$</span> <span class="cmd-text">curl <span class="flag">-u</span> user:pass https://secure.api</span>    <span class="comment"># Basic Auth</span>
+<span class="prompt">$</span> <span class="cmd-text">curl <span class="flag">-o</span> file.tar.gz <span class="flag">-L</span> https://url</span>    <span class="comment"># скачать с редиректом</span>
+<span class="prompt">$</span> <span class="cmd-text">curl <span class="flag">-w</span> "%{http_code}" <span class="flag">-s</span> -o /dev/null https://site</span>  <span class="comment"># только код ответа</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Ключи</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">-I</span><span class="flag-val">только заголовки</span></div>
+            <div class="flag-pill"><span class="flag-key">-X</span><span class="flag-val">метод (POST/PUT/...)</span></div>
+            <div class="flag-pill"><span class="flag-key">-H</span><span class="flag-val">заголовок</span></div>
+            <div class="flag-pill"><span class="flag-key">-d</span><span class="flag-val">тело запроса</span></div>
+            <div class="flag-pill"><span class="flag-key">-o</span><span class="flag-val">файл вывода</span></div>
+            <div class="flag-pill"><span class="flag-key">-L</span><span class="flag-val">следовать редиректу</span></div>
+            <div class="flag-pill"><span class="flag-key">-s</span><span class="flag-val">silent mode</span></div>
+            <div class="flag-pill"><span class="flag-key">-k</span><span class="flag-val">игнорировать SSL</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">ping / dig / host</div>
+          <div class="cmd-theory">Базовая диагностика. <code>ping</code> — ICMP-доступность (но многие узлы её блокируют). <code>dig</code> — DNS-отладка. <code>host</code> — короткий вывод для скриптов.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">ping <span class="flag">-c</span> 4 8.8.8.8</span>                <span class="comment"># 4 пакета к DNS Google</span>
+<span class="prompt">$</span> <span class="cmd-text">dig google.com A</span>                  <span class="comment"># A-запись (IPv4)</span>
+<span class="prompt">$</span> <span class="cmd-text">dig <span class="flag">+short</span> google.com</span>            <span class="comment"># только результат</span>
+<span class="prompt">$</span> <span class="cmd-text">dig <span class="flag">@8.8.8.8</span> example.com MX</span>     <span class="comment"># MX через конкретный DNS</span>
+<span class="prompt">$</span> <span class="cmd-text">dig <span class="flag">+trace</span> example.com</span>           <span class="comment"># полная цепочка DNS-серверов</span>
+<span class="prompt">$</span> <span class="cmd-text">dig <span class="flag">-x</span> 8.8.8.8</span>                   <span class="comment"># reverse lookup (PTR)</span>
+<span class="prompt">$</span> <span class="cmd-text">host -t TXT example.com</span>            <span class="comment"># TXT-записи (SPF, DMARC, верификации)</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Ключи dig</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">+short</span><span class="flag-val">краткий ответ</span></div>
+            <div class="flag-pill"><span class="flag-key">+trace</span><span class="flag-val">трассировка DNS</span></div>
+            <div class="flag-pill"><span class="flag-key">@server</span><span class="flag-val">DNS-сервер</span></div>
+            <div class="flag-pill"><span class="flag-key">A/AAAA/MX/CNAME/TXT</span><span class="flag-val">тип записи</span></div>
+            <div class="flag-pill"><span class="flag-key">-x</span><span class="flag-val">reverse</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">nc (netcat) / nmap</div>
+          <div class="cmd-theory">"Швейцарский нож" сетей. <code>nc</code> — проверка портов, простейший chat, передача файлов. <code>nmap</code> — серьёзное сканирование. На проде: используй для проверки firewall и доступности сервиса.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">nc <span class="flag">-zv</span> example.com 443</span>           <span class="comment"># проверить открыт ли порт</span>
+<span class="prompt">$</span> <span class="cmd-text">nc <span class="flag">-zv</span> 10.0.0.5 20-25</span>             <span class="comment"># диапазон портов</span>
+<span class="prompt">$</span> <span class="cmd-text">nc <span class="flag">-l</span> 8080</span>                       <span class="comment"># слушать порт (для теста firewall)</span>
+<span class="prompt">$</span> <span class="cmd-text">nc <span class="flag">-l</span> 9000 &gt; received.tar</span>        <span class="comment"># принять файл</span>
+<span class="prompt">$</span> <span class="cmd-text">nc target.host 9000 &lt; file.tar</span>    <span class="comment"># отправить файл</span>
+<span class="prompt">$</span> <span class="cmd-text">nmap <span class="flag">-sT</span> <span class="flag">-p</span> 80,443,22 10.0.0.0/24</span>  <span class="comment"># TCP-connect scan подсети</span>
+<span class="prompt">$</span> <span class="cmd-text">nmap <span class="flag">-sV</span> <span class="flag">-p</span> 22 host</span>                <span class="comment"># версия сервиса</span></pre>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">mtr / traceroute</div>
+          <div class="cmd-theory"><code>mtr</code> = traceroute + ping в реальном времени, показывает loss на каждом хопе. Лучший инструмент для диагностики "у нас тормозит сеть".</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">mtr google.com</span>                     <span class="comment"># интерактивно</span>
+<span class="prompt">$</span> <span class="cmd-text">mtr <span class="flag">-rwbz</span> <span class="flag">-c</span> 100 google.com</span>         <span class="comment"># отчёт: 100 пакетов, no DNS, ASN</span>
+<span class="prompt">$</span> <span class="cmd-text">mtr <span class="flag">--tcp</span> <span class="flag">-P</span> 443 host</span>                <span class="comment"># TCP-трассировка к 443 (через NAT/FW)</span>
+<span class="prompt">$</span> <span class="cmd-text">traceroute <span class="flag">-T</span> <span class="flag">-p</span> 443 host</span>           <span class="comment"># TCP traceroute</span></pre>
+        </div>
+      </div>
+
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>TCP State</th><th>Что означает</th><th>На что обратить внимание</th></tr></thead>
+        <tbody>
+          <tr><td>LISTEN</td><td>Сокет ждёт входящих соединений</td><td>Норма для сервера</td></tr>
+          <tr><td>ESTABLISHED</td><td>Активное соединение, идёт обмен данными</td><td>Норма</td></tr>
+          <tr><td>SYN-SENT</td><td>Отправлен SYN, ждём SYN-ACK</td><td>Много = клиент не достучится</td></tr>
+          <tr><td>TIME-WAIT</td><td>Закрыли мы; ждём 2*MSL (~60c)</td><td>Тысячи = высокая частота кратких соединений, нужен keep-alive</td></tr>
+          <tr><td>CLOSE-WAIT</td><td>Удалённый закрыл, мы — нет</td><td><strong>Утечка</strong> в приложении (не закрывает сокеты)</td></tr>
+          <tr><td>FIN-WAIT-1/2</td><td>Мы закрыли, ждём ACK / FIN</td><td>Норма; долгий FIN-WAIT-2 → сервер не отвечает</td></tr>
+          <tr><td>LAST-ACK / CLOSING</td><td>Переходные при закрытии</td><td>Кратковременны</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="case-box">
+      <span class="tip-icon">🎤</span>
+      <span><strong>Кейс:</strong> "Сервис не отвечает на порту 8080 — куда смотреть?" Чеклист: 1) <code>ss -tlnp | grep 8080</code> — слушает ли вообще; 2) если слушает — <code>curl -v localhost:8080</code> с локалхоста; 3) firewall: <code>iptables -L -n</code> / <code>ufw status</code>; 4) <code>nc -zv host 8080</code> снаружи; 5) <code>tcpdump -i any port 8080</code> — приходят ли пакеты; 6) Security Group / NACL в облаке.</span>
+    </div>
+  </div>
+
+  <!-- 4. ТЕКСТ И ЛОГИ -->
+  <div class="category c4" id="cat-text">
+    <div class="cat-header">
+      <div class="cat-icon">🔍</div>
+      <div>
+        <div class="cat-title">Текст и работа с логами</div>
+        <div class="cat-desc">grep, sed, awk, tail — основа анализа логов в production</div>
+      </div>
+    </div>
+    <div class="commands">
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">grep</div>
+          <div class="cmd-theory">Поиск по шаблону (regex) внутри файлов или потоков. Ключевой инструмент анализа логов и конфигов на продакшне.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">grep <span class="flag">-i</span> "error" <span class="path">/var/log/nginx/error.log</span></span>   <span class="comment"># без учёта регистра</span>
+<span class="prompt">$</span> <span class="cmd-text">grep <span class="flag">-r</span> "password" <span class="path">/etc/</span></span>               <span class="comment"># рекурсивно по папке</span>
+<span class="prompt">$</span> <span class="cmd-text">grep <span class="flag">-v</span> "DEBUG" app.log</span>               <span class="comment"># инвертировать (исключить)</span>
+<span class="prompt">$</span> <span class="cmd-text">grep <span class="flag">-E</span> "ERROR|WARN|CRITICAL" app.log</span> <span class="comment"># расширенный regex</span>
+<span class="prompt">$</span> <span class="cmd-text">grep <span class="flag">-c</span> "500" access.log</span>             <span class="comment"># подсчёт совпадений</span>
+<span class="prompt">$</span> <span class="cmd-text">grep <span class="flag">-A</span> 3 <span class="flag">-B</span> 2 "exception" app.log</span>  <span class="comment"># контекст: 3 строки после, 2 до</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Ключи</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">-i</span><span class="flag-val">без учёта регистра</span></div>
+            <div class="flag-pill"><span class="flag-key">-r</span><span class="flag-val">рекурсивно</span></div>
+            <div class="flag-pill"><span class="flag-key">-v</span><span class="flag-val">инвертировать</span></div>
+            <div class="flag-pill"><span class="flag-key">-E</span><span class="flag-val">extended regex</span></div>
+            <div class="flag-pill"><span class="flag-key">-c</span><span class="flag-val">подсчёт строк</span></div>
+            <div class="flag-pill"><span class="flag-key">-n</span><span class="flag-val">номер строки</span></div>
+            <div class="flag-pill"><span class="flag-key">-A/-B</span><span class="flag-val">контекст после/до</span></div>
+            <div class="flag-pill"><span class="flag-key">-l</span><span class="flag-val">только имена файлов</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">awk</div>
+          <div class="cmd-theory">Язык обработки текста по столбцам. Незаменим для парсинга структурированных логов, CSV-файлов и вывода команд.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">awk '{print $1, $4}' access.log</span>       <span class="comment"># вывести 1-й и 4-й столбцы</span>
+<span class="prompt">$</span> <span class="cmd-text">awk <span class="flag">-F:</span> '{print $1}' /etc/passwd</span>     <span class="comment"># разделитель ':' → имена юзеров</span>
+<span class="prompt">$</span> <span class="cmd-text">awk '$9 == "500"' access.log</span>          <span class="comment"># строки где поле 9 = 500</span>
+<span class="prompt">$</span> <span class="cmd-text">awk '{sum+=$5} END {print sum}' data</span>  <span class="comment"># сумма 5-го столбца</span>
+<span class="prompt">$</span> <span class="cmd-text">ps aux | awk '{print $2, $3}' | sort <span class="flag">-k2</span> <span class="flag">-rn</span> | head</span>  <span class="comment"># топ по CPU</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Ключи</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">-F</span><span class="flag-val">разделитель полей</span></div>
+            <div class="flag-pill"><span class="flag-key">-v</span><span class="flag-val">переменная</span></div>
+            <div class="flag-pill"><span class="flag-key">NR</span><span class="flag-val">номер строки</span></div>
+            <div class="flag-pill"><span class="flag-key">NF</span><span class="flag-val">число полей</span></div>
+            <div class="flag-pill"><span class="flag-key">BEGIN/END</span><span class="flag-val">до/после обработки</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">sed</div>
+          <div class="cmd-theory">Stream EDitor. Главное применение — замена/удаление строк в конфигах и логах. <code>-i</code> правит файл на месте (обязательно с бэкапом!). Поддерживает regex и адресацию по строкам.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">sed 's/foo/bar/g' file</span>              <span class="comment"># замена в выводе</span>
+<span class="prompt">$</span> <span class="cmd-text">sed <span class="flag">-i.bak</span> 's/foo/bar/g' file</span>      <span class="comment"># in-place + бэкап file.bak</span>
+<span class="prompt">$</span> <span class="cmd-text">sed <span class="flag">-i</span> '/^#/d' config.conf</span>          <span class="comment"># удалить комментарии</span>
+<span class="prompt">$</span> <span class="cmd-text">sed <span class="flag">-i</span> '/^$/d' file</span>                  <span class="comment"># удалить пустые строки</span>
+<span class="prompt">$</span> <span class="cmd-text">sed <span class="flag">-n</span> '10,20p' file</span>                 <span class="comment"># только строки 10–20 (как head/tail)</span>
+<span class="prompt">$</span> <span class="cmd-text">sed <span class="flag">-i</span> 's|<span class="path">/old/path</span>|<span class="path">/new/path</span>|g' file</span>  <span class="comment"># другой разделитель для путей</span>
+<span class="prompt">$</span> <span class="cmd-text">sed <span class="flag">-i</span> '/^bind-address/c\bind-address = 0.0.0.0' my.cnf</span>  <span class="comment"># заменить строку целиком</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Ключи и команды</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">-i[ext]</span><span class="flag-val">in-place [+бэкап]</span></div>
+            <div class="flag-pill"><span class="flag-key">-n</span><span class="flag-val">подавить вывод</span></div>
+            <div class="flag-pill"><span class="flag-key">-E</span><span class="flag-val">extended regex</span></div>
+            <div class="flag-pill"><span class="flag-key">s/x/y/g</span><span class="flag-val">substitute global</span></div>
+            <div class="flag-pill"><span class="flag-key">d</span><span class="flag-val">delete</span></div>
+            <div class="flag-pill"><span class="flag-key">p</span><span class="flag-val">print</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">sort / uniq / wc</div>
+          <div class="cmd-theory">Базовая аналитика логов. <strong>Важно:</strong> <code>uniq</code> убирает только <em>соседние</em> дубли, поэтому почти всегда идёт после <code>sort</code>. Связка <code>sort | uniq -c | sort -rn</code> — стандартный приём топ-аналитики.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">sort file.txt | uniq</span>                <span class="comment"># уникальные строки</span>
+<span class="prompt">$</span> <span class="cmd-text">sort file | uniq <span class="flag">-c</span> | sort <span class="flag">-rn</span></span>      <span class="comment"># подсчёт + топ</span>
+<span class="prompt">$</span> <span class="cmd-text">awk '{print $1}' access.log | sort | uniq <span class="flag">-c</span> | sort <span class="flag">-rn</span> | head</span>  <span class="comment"># топ-IP</span>
+<span class="prompt">$</span> <span class="cmd-text">wc <span class="flag">-l</span> file</span>                         <span class="comment"># количество строк</span>
+<span class="prompt">$</span> <span class="cmd-text">sort <span class="flag">-k2</span> <span class="flag">-rn</span> data.txt</span>                <span class="comment"># сорт по 2-му полю, числам, убыв.</span>
+<span class="prompt">$</span> <span class="cmd-text">sort <span class="flag">-u</span> <span class="flag">-t,</span> <span class="flag">-k3</span> data.csv</span>             <span class="comment"># уникальные по 3-му полю CSV</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Ключи sort</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">-n</span><span class="flag-val">числовая сортировка</span></div>
+            <div class="flag-pill"><span class="flag-key">-r</span><span class="flag-val">убывание</span></div>
+            <div class="flag-pill"><span class="flag-key">-k N</span><span class="flag-val">по полю N</span></div>
+            <div class="flag-pill"><span class="flag-key">-t</span><span class="flag-val">разделитель</span></div>
+            <div class="flag-pill"><span class="flag-key">-u</span><span class="flag-val">уникальные (=uniq)</span></div>
+            <div class="flag-pill"><span class="flag-key">-h</span><span class="flag-val">human (1K/1M/1G)</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">cut / tr / paste</div>
+          <div class="cmd-theory">Лёгкие текстовые трансформации. <code>cut</code> — вырезать поля/символы. <code>tr</code> — замена/удаление символов. <code>paste</code> — склейка строк по горизонтали.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">cut <span class="flag">-d:</span> <span class="flag">-f1</span> /etc/passwd</span>           <span class="comment"># имена пользователей</span>
+<span class="prompt">$</span> <span class="cmd-text">cut <span class="flag">-d</span>',' <span class="flag">-f2,4</span> data.csv</span>           <span class="comment"># 2-й и 4-й столбец CSV</span>
+<span class="prompt">$</span> <span class="cmd-text">echo "Hello" | tr '[:lower:]' '[:upper:]'</span>  <span class="comment"># HELLO</span>
+<span class="prompt">$</span> <span class="cmd-text">tr <span class="flag">-d</span> '\r' &lt; win.txt &gt; unix.txt</span>      <span class="comment"># убрать CR (CRLF → LF)</span>
+<span class="prompt">$</span> <span class="cmd-text">tr <span class="flag">-s</span> ' ' &lt; file</span>                    <span class="comment"># squeeze повторяющиеся пробелы</span>
+<span class="prompt">$</span> <span class="cmd-text">paste file1 file2</span>                    <span class="comment"># построчная склейка через таб</span></pre>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">tail / head / less</div>
+          <div class="cmd-theory">Чтение файлов. <code>tail -f</code> — мастхэв для мониторинга логов в реальном времени. <code>less</code> — постраничный просмотр больших файлов с поиском.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">tail <span class="flag">-f</span> <span class="path">/var/log/syslog</span></span>             <span class="comment"># следить за логом в реальном времени</span>
+<span class="prompt">$</span> <span class="cmd-text">tail <span class="flag">-n</span> 100 app.log | grep ERROR</span>    <span class="comment"># последние 100 строк + фильтр</span>
+<span class="prompt">$</span> <span class="cmd-text">tail <span class="flag">-F</span> app.log | grep <span class="flag">--line-buffered</span> "ERROR"</span>  <span class="comment"># live grep с reopen</span>
+<span class="prompt">$</span> <span class="cmd-text">tail <span class="flag">-f</span> a.log b.log</span>                  <span class="comment"># несколько файлов разом</span>
+<span class="prompt">$</span> <span class="cmd-text">head <span class="flag">-20</span> config.yaml</span>               <span class="comment"># первые 20 строк</span>
+<span class="prompt">$</span> <span class="cmd-text">less <span class="flag">+G</span> app.log</span>                    <span class="comment"># открыть в конце файла</span>
+<span class="output-text">  # less: /pattern — поиск, n — следующее, G — в конец, g — в начало, &amp;ERROR — фильтр</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Ключи tail</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">-f</span><span class="flag-val">следить за файлом</span></div>
+            <div class="flag-pill"><span class="flag-key">-n</span><span class="flag-val">число строк</span></div>
+            <div class="flag-pill"><span class="flag-key">-F</span><span class="flag-val">следить + reopen при ротации</span></div>
+            <div class="flag-pill"><span class="flag-key">-c</span><span class="flag-val">по байтам</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="tip">
+      <span class="tip-icon">💡</span>
+      <span>Святая троица аналитики логов: <code>grep | awk | sort | uniq -c | sort -rn | head</code>. Топ-10 IP по запросам, топ-10 URL по 500-кам, топ user-agent — всё этой связкой.</span>
+    </div>
+    <div class="case-box">
+      <span class="tip-icon">🎤</span>
+      <span><strong>Кейс — анализ access.log за день:</strong><br>
+      • <strong>Топ-10 IP:</strong> <code>awk '{print $1}' access.log | sort | uniq -c | sort -rn | head</code><br>
+      • <strong>5xx за последний час:</strong> <code>awk '$9 ~ /^5/' access.log | tail -1000</code><br>
+      • <strong>RPS по минутам:</strong> <code>awk '{print $4}' access.log | cut -d: -f1-3 | uniq -c</code><br>
+      • <strong>Тяжёлые ответы:</strong> <code>awk '$10 &gt; 1048576 {print $7, $10}' access.log | sort -k2 -rn | head</code></span>
+    </div>
+  </div>
+
+  <!-- 5. ПРАВА И ПОЛЬЗОВАТЕЛИ -->
+  <div class="category c5" id="cat-perms">
+    <div class="cat-header">
+      <div class="cat-icon">🔐</div>
+      <div>
+        <div class="cat-title">Права, пользователи, sudo</div>
+        <div class="cat-desc">Безопасность, управление доступом, разрешения на файлы</div>
+      </div>
+    </div>
+    <div class="commands">
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">chmod / chown</div>
+          <div class="cmd-theory">Управление правами доступа и владельцем файлов. Критично для безопасности: 777 на продакшне = красный флаг на интервью.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">chmod 755 script.sh</span>              <span class="comment"># rwxr-xr-x (типично для скриптов)</span>
+<span class="prompt">$</span> <span class="cmd-text">chmod 644 config.conf</span>            <span class="comment"># rw-r--r-- (конфиги)</span>
+<span class="prompt">$</span> <span class="cmd-text">chmod <span class="flag">-R</span> 750 <span class="path">/var/app/</span></span>          <span class="comment"># рекурсивно на директорию</span>
+<span class="prompt">$</span> <span class="cmd-text">chmod u+x,g-w script.sh</span>          <span class="comment"># символьный режим</span>
+<span class="prompt">$</span> <span class="cmd-text">chown www-data:www-data <span class="flag">-R</span> <span class="path">/var/www/</span></span>  <span class="comment"># владелец:группа рекурсивно</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Права (числа)</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">4</span><span class="flag-val">read (r)</span></div>
+            <div class="flag-pill"><span class="flag-key">2</span><span class="flag-val">write (w)</span></div>
+            <div class="flag-pill"><span class="flag-key">1</span><span class="flag-val">execute (x)</span></div>
+            <div class="flag-pill"><span class="flag-key">7=rwx</span><span class="flag-val">полный доступ</span></div>
+            <div class="flag-pill"><span class="flag-key">644</span><span class="flag-val">файлы</span></div>
+            <div class="flag-pill"><span class="flag-key">755</span><span class="flag-val">директории/скрипты</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">sudo / su / useradd</div>
+          <div class="cmd-theory">Управление привилегиями и пользователями. sudo — выполнить команду от root. su — сменить пользователя. useradd — создать нового.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">sudo systemctl restart nginx</span>          <span class="comment"># выполнить как root</span>
+<span class="prompt">$</span> <span class="cmd-text">sudo <span class="flag">-u</span> postgres psql</span>               <span class="comment"># выполнить как другой пользователь</span>
+<span class="prompt">$</span> <span class="cmd-text">sudo <span class="flag">-l</span></span>                              <span class="comment"># что мне разрешено через sudo</span>
+<span class="prompt">$</span> <span class="cmd-text">useradd <span class="flag">-m</span> <span class="flag">-s</span> /bin/bash deploy</span>      <span class="comment"># создать пользователя с home</span>
+<span class="prompt">$</span> <span class="cmd-text">usermod <span class="flag">-aG</span> docker $USER</span>           <span class="comment"># добавить в группу docker</span>
+<span class="prompt">$</span> <span class="cmd-text">passwd deploy</span>                        <span class="comment"># задать пароль</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Ключи useradd/usermod</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">-m</span><span class="flag-val">создать home</span></div>
+            <div class="flag-pill"><span class="flag-key">-s</span><span class="flag-val">shell пользователя</span></div>
+            <div class="flag-pill"><span class="flag-key">-G</span><span class="flag-val">добавить в группы</span></div>
+            <div class="flag-pill"><span class="flag-key">-aG</span><span class="flag-val">append к группам</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">umask / SUID / SGID / Sticky</div>
+          <div class="cmd-theory">Дополнительные биты прав. <strong>umask</strong> — маска для новых файлов (вычитается из 666/777). <strong>SUID (4xxx)</strong> — выполнить от владельца файла (классика: <code>/usr/bin/passwd</code>). <strong>SGID (2xxx)</strong> — от группы или новые файлы наследуют группу директории. <strong>Sticky (1xxx)</strong> — удалять может только владелец (классика: <code>/tmp</code>).</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">umask</span>                              <span class="comment"># посмотреть текущую (обычно 0022)</span>
+<span class="prompt">$</span> <span class="cmd-text">umask 0027</span>                         <span class="comment"># новые файлы: 640, папки: 750</span>
+<span class="prompt">$</span> <span class="cmd-text">chmod 4755 /usr/bin/myutil</span>          <span class="comment"># SUID + 755</span>
+<span class="prompt">$</span> <span class="cmd-text">chmod g+s /shared/dir</span>               <span class="comment"># SGID на папку (наследование группы)</span>
+<span class="prompt">$</span> <span class="cmd-text">chmod +t /tmp</span>                       <span class="comment"># sticky bit</span>
+<span class="prompt">$</span> <span class="cmd-text">find <span class="path">/</span> <span class="flag">-perm</span> -4000 <span class="flag">-type</span> f 2&gt;/dev/null</span>   <span class="comment"># все SUID — security аудит</span></pre>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">setfacl / getfacl (ACL)</div>
+          <div class="cmd-theory">Расширенные права доступа (POSIX ACL) — когда обычных user/group/other не хватает. Нужны для случаев "дать конкретному пользователю доступ к чужому файлу" без изменения владельца. Признак: <code>+</code> в конце прав в <code>ls -l</code>.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">getfacl file</span>                       <span class="comment"># посмотреть ACL</span>
+<span class="prompt">$</span> <span class="cmd-text">setfacl <span class="flag">-m</span> u:deploy:rx <span class="path">/var/log/app/</span></span>  <span class="comment"># дать deploy r+x</span>
+<span class="prompt">$</span> <span class="cmd-text">setfacl <span class="flag">-m</span> g:devs:rw file</span>           <span class="comment"># группе devs — rw</span>
+<span class="prompt">$</span> <span class="cmd-text">setfacl <span class="flag">-d</span> <span class="flag">-m</span> u:deploy:rx <span class="path">/var/log/app/</span></span>  <span class="comment"># default ACL (новые файлы наследуют)</span>
+<span class="prompt">$</span> <span class="cmd-text">setfacl <span class="flag">-x</span> u:deploy file</span>             <span class="comment"># удалить запись</span></pre>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">capabilities / getcap / setcap</div>
+          <div class="cmd-theory">Современная альтернатива SUID. Вместо "всё или ничего" даёт процессу конкретные права (например, биндить порт &lt;1024). Безопаснее, чем root.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">getcap <span class="path">/usr/bin/ping</span></span>               <span class="comment"># посмотреть caps</span>
+<span class="prompt">$</span> <span class="cmd-text">setcap 'cap_net_bind_service=+ep' <span class="path">/usr/bin/node</span></span>  <span class="comment"># node может слушать 80/443 без root</span>
+<span class="prompt">$</span> <span class="cmd-text">setcap <span class="flag">-r</span> <span class="path">/usr/bin/node</span></span>              <span class="comment"># убрать caps</span>
+<span class="prompt">$</span> <span class="cmd-text">getpcaps $$</span>                          <span class="comment"># caps текущего процесса</span>
+<span class="output-text">  # Полезные: CAP_NET_BIND_SERVICE, CAP_SYS_PTRACE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN</span></pre>
+        </div>
+      </div>
+
+    </div>
+    <div class="tip">
+      <span class="tip-icon">💡</span>
+      <span>Числа прав легко: <strong>r=4, w=2, x=1</strong>. 755 = rwx r-x r-x (для исполняемых), 644 = rw- r-- r-- (для конфигов), 600 = rw- --- --- (для ключей и секретов).</span>
+    </div>
+    <div class="case-box">
+      <span class="tip-icon">🎤</span>
+      <span><strong>Кейс:</strong> "Юзер в группе <code>docker</code>, но <code>docker ps</code> говорит permission denied — почему?" Группы добавляются в сессию <em>при логине</em>, текущая bash не знает. Решения: <code>newgrp docker</code>, <code>su - $USER</code>, или перелогиниться. Проверить: <code>id</code> (новые группы) vs <code>groups</code> (сессии).</span>
+    </div>
+  </div>
+  <!-- 6. ДИСК И СИСТЕМНЫЕ РЕСУРСЫ -->
+  <div class="category c6" id="cat-disk">
+    <div class="cat-header">
+      <div class="cat-icon">💾</div>
+      <div>
+        <div class="cat-title">Диск и системные ресурсы</div>
+        <div class="cat-desc">Мониторинг дисков, памяти, нагрузки на систему</div>
+      </div>
+    </div>
+    <div class="commands">
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">df / du</div>
+          <div class="cmd-theory">df — свободное место на разделах. du — сколько занимает конкретная директория. Первое, что проверяют при проблемах на продакшне.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">df <span class="flag">-h</span></span>                              <span class="comment"># место на всех разделах</span>
+<span class="prompt">$</span> <span class="cmd-text">df <span class="flag">-h</span> <span class="path">/var</span></span>                        <span class="comment"># конкретный раздел</span>
+<span class="prompt">$</span> <span class="cmd-text">du <span class="flag">-sh</span> <span class="path">/var/log/</span></span>                 <span class="comment"># размер папки логов</span>
+<span class="prompt">$</span> <span class="cmd-text">du <span class="flag">-h</span> <span class="flag">--max-depth=1</span> <span class="path">/var/</span></span>      <span class="comment"># топ папок в /var</span>
+<span class="prompt">$</span> <span class="cmd-text">du <span class="flag">-sh</span> * | sort <span class="flag">-rh</span> | head -10</span>  <span class="comment"># топ-10 папок по размеру</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Ключи</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">-h</span><span class="flag-val">human readable</span></div>
+            <div class="flag-pill"><span class="flag-key">-s</span><span class="flag-val">только итог (du)</span></div>
+            <div class="flag-pill"><span class="flag-key">--max-depth</span><span class="flag-val">глубина рекурсии</span></div>
+            <div class="flag-pill"><span class="flag-key">-i</span><span class="flag-val">inodes (df)</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">free / vmstat / uptime</div>
+          <div class="cmd-theory">Мониторинг оперативной памяти и нагрузки. free — RAM/swap. vmstat — виртуальная память и I/O. uptime — LA (load average).</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">free <span class="flag">-h</span></span>                 <span class="comment"># RAM и swap в читаемом виде</span>
+<span class="prompt">$</span> <span class="cmd-text">vmstat <span class="flag">1</span> <span class="flag">5</span></span>             <span class="comment"># 5 замеров каждую секунду</span>
+<span class="prompt">$</span> <span class="cmd-text">uptime</span>                  <span class="comment"># LA за 1, 5, 15 минут</span>
+<span class="prompt">$</span> <span class="cmd-text">cat /proc/meminfo</span>       <span class="comment"># детальная инфо о памяти</span>
+<span class="output-text">  # LA > кол-во CPU = перегрузка системы</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">vmstat столбцы</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">us/sy</span><span class="flag-val">user/system CPU %</span></div>
+            <div class="flag-pill"><span class="flag-key">si/so</span><span class="flag-val">swap in/out</span></div>
+            <div class="flag-pill"><span class="flag-key">bi/bo</span><span class="flag-val">disk I/O блоки</span></div>
+            <div class="flag-pill"><span class="flag-key">wa</span><span class="flag-val">ожидание I/O</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">lsblk / blkid / mount / fstab</div>
+          <div class="cmd-theory">Управление блочными устройствами и монтированием. <code>lsblk</code> — дерево дисков и партиций. <code>blkid</code> — UUID и тип FS. Монтирования прописываются в <code>/etc/fstab</code> (только UUID, не /dev/sdX — переименуются!).</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">lsblk</span>                              <span class="comment"># все диски и партиции</span>
+<span class="prompt">$</span> <span class="cmd-text">lsblk <span class="flag">-f</span></span>                           <span class="comment"># + файловая система и UUID</span>
+<span class="prompt">$</span> <span class="cmd-text">blkid</span>                              <span class="comment"># UUID всех устройств</span>
+<span class="prompt">$</span> <span class="cmd-text">mount | column <span class="flag">-t</span></span>                  <span class="comment"># текущие монтирования</span>
+<span class="prompt">$</span> <span class="cmd-text">mount <span class="flag">-o</span> remount,ro <span class="path">/mnt/data</span></span>      <span class="comment"># перемонтировать как read-only</span>
+<span class="prompt">$</span> <span class="cmd-text">mount <span class="flag">-t</span> nfs server:<span class="path">/exp</span> <span class="path">/mnt</span></span>      <span class="comment"># NFS</span>
+<span class="prompt">$</span> <span class="cmd-text">umount <span class="path">/mnt/data</span></span>                  <span class="comment"># отмонтировать (busy? — lsof, fuser)</span>
+<span class="prompt">$</span> <span class="cmd-text">mount <span class="flag">-a</span></span>                           <span class="comment"># перечитать fstab (после правки)</span>
+<span class="prompt">$</span> <span class="cmd-text">findmnt <span class="path">/var</span></span>                       <span class="comment"># подробно про конкретную точку</span></pre>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">swap / OOM killer</div>
+          <div class="cmd-theory">Swap — расширение RAM на диске (медленно). <strong>vm.swappiness</strong> (0–100) — насколько охотно ядро уходит в swap. Для серверов БД обычно ставят <code>10</code> или <code>1</code>. OOM killer убивает процессы при нехватке памяти — обычно с худшим <code>oom_score</code>.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">swapon <span class="flag">--show</span></span>                       <span class="comment"># активный swap</span>
+<span class="prompt">$</span> <span class="cmd-text">fallocate <span class="flag">-l</span> 2G /swapfile &amp;&amp; chmod 600 /swapfile</span>
+<span class="prompt">$</span> <span class="cmd-text">mkswap /swapfile &amp;&amp; swapon /swapfile</span>  <span class="comment"># создать и включить swap-файл</span>
+<span class="prompt">$</span> <span class="cmd-text">sysctl vm.swappiness=10</span>              <span class="comment"># временно</span>
+<span class="prompt">$</span> <span class="cmd-text">dmesg <span class="flag">-T</span> | grep <span class="flag">-i</span> "killed process"</span>  <span class="comment"># кого убил OOM</span>
+<span class="prompt">$</span> <span class="cmd-text">cat /proc/1234/oom_score</span>             <span class="comment"># шанс быть убитым</span>
+<span class="prompt">$</span> <span class="cmd-text">echo -1000 &gt; /proc/1234/oom_score_adj</span> <span class="comment"># защитить от OOM</span></pre>
+        </div>
+      </div>
+
+    </div>
+    <div class="case-box">
+      <span class="tip-icon">🎤</span>
+      <span><strong>Кейс — high load average при низком CPU:</strong> LA включает процессы в <code>R</code> и <code>D</code> (uninterruptible sleep, обычно IO-wait). Если CPU свободен, а LA высокий — узкое место в I/O. Проверь: <code>vmstat 1</code> (колонка <code>wa</code>), <code>iostat -xz 1</code> (<code>%util</code> близко к 100), <code>iotop</code> (кто грузит диск).</span>
+    </div>
+  </div>
+  <div class="category c7" id="cat-systemd">
+    <div class="cat-header">
+      <div class="cat-icon">🚀</div>
+      <div>
+        <div class="cat-title">Systemd, SSH, архивы</div>
+        <div class="cat-desc">Управление сервисами, удалённый доступ, работа с архивами</div>
+      </div>
+    </div>
+    <div class="commands">
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">systemctl</div>
+          <div class="cmd-theory">Управление systemd-сервисами. На каждом современном Linux-сервере это основной инструмент управления демонами. Свои unit-файлы кладутся в <code>/etc/systemd/system/</code>, после правки — обязательно <code>systemctl daemon-reload</code>.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">systemctl status nginx</span>                <span class="comment"># состояние сервиса</span>
+<span class="prompt">$</span> <span class="cmd-text">systemctl start|stop|restart nginx</span>   <span class="comment"># управление сервисом</span>
+<span class="prompt">$</span> <span class="cmd-text">systemctl reload nginx</span>                <span class="comment"># SIGHUP без рестарта (если поддерживается)</span>
+<span class="prompt">$</span> <span class="cmd-text">systemctl enable <span class="flag">--now</span> nginx</span>          <span class="comment"># автозапуск + старт сразу</span>
+<span class="prompt">$</span> <span class="cmd-text">systemctl list-units <span class="flag">--type=service</span> <span class="flag">--state=failed</span></span>  <span class="comment"># упавшие</span>
+<span class="prompt">$</span> <span class="cmd-text">systemctl cat nginx</span>                   <span class="comment"># показать unit-файл</span>
+<span class="prompt">$</span> <span class="cmd-text">systemctl edit nginx</span>                  <span class="comment"># override в /etc/systemd/system/nginx.service.d/</span>
+<span class="prompt">$</span> <span class="cmd-text">systemctl daemon-reload</span>               <span class="comment"># после правки unit-файлов</span>
+<span class="prompt">$</span> <span class="cmd-text">systemd-analyze blame</span>                 <span class="comment"># что тормозит загрузку системы</span>
+<span class="prompt">$</span> <span class="cmd-text">journalctl <span class="flag">-u</span> nginx <span class="flag">-f</span></span>             <span class="comment"># логи сервиса в реальном времени</span>
+<span class="prompt">$</span> <span class="cmd-text">journalctl <span class="flag">-u</span> nginx <span class="flag">--since</span> "1 hour ago"</span>    <span class="comment"># за последний час</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Частые команды</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">status</span><span class="flag-val">состояние</span></div>
+            <div class="flag-pill"><span class="flag-key">restart</span><span class="flag-val">перезапуск</span></div>
+            <div class="flag-pill"><span class="flag-key">reload</span><span class="flag-val">перечитать конфиг</span></div>
+            <div class="flag-pill"><span class="flag-key">enable</span><span class="flag-val">автозапуск ON</span></div>
+            <div class="flag-pill"><span class="flag-key">disable</span><span class="flag-val">автозапуск OFF</span></div>
+            <div class="flag-pill"><span class="flag-key">mask</span><span class="flag-val">запретить запуск</span></div>
+            <div class="flag-pill"><span class="flag-key">edit</span><span class="flag-val">override unit</span></div>
+            <div class="flag-pill"><span class="flag-key">daemon-reload</span><span class="flag-val">после правки unit</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">📄 Свой unit-файл</div>
+          <div class="cmd-theory">Минимальный unit для приложения. <code>Type=simple</code> — процесс не демонизируется. <code>Restart=always</code> — рестарт при падении. Безопасность: запускать от <em>отдельного</em> пользователя, не root.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">/etc/systemd/system/myapp.service</div>
+          <pre><span class="comment">[Unit]</span>
+<span class="cmd-text">Description=My App</span>
+<span class="cmd-text">After=network.target postgresql.service</span>
+<span class="cmd-text">Requires=postgresql.service</span>
+
+<span class="comment">[Service]</span>
+<span class="cmd-text">Type=simple</span>
+<span class="cmd-text">User=appuser</span>
+<span class="cmd-text">Group=appuser</span>
+<span class="cmd-text">WorkingDirectory=<span class="path">/opt/myapp</span></span>
+<span class="cmd-text">EnvironmentFile=<span class="path">/etc/myapp/env</span></span>
+<span class="cmd-text">ExecStart=<span class="path">/opt/myapp/bin/server</span></span>
+<span class="cmd-text">ExecReload=/bin/kill -HUP $MAINPID</span>
+<span class="cmd-text">Restart=always</span>
+<span class="cmd-text">RestartSec=5</span>
+<span class="cmd-text">LimitNOFILE=65536</span>
+<span class="cmd-text">NoNewPrivileges=true</span>
+<span class="cmd-text">ProtectSystem=strict</span>
+<span class="cmd-text">ProtectHome=true</span>
+<span class="cmd-text">PrivateTmp=true</span>
+
+<span class="comment">[Install]</span>
+<span class="cmd-text">WantedBy=multi-user.target</span></pre>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">ssh / scp / rsync</div>
+          <div class="cmd-theory">Удалённый доступ и передача файлов. <strong>rsync</strong> мощнее scp: синхронизирует только дельту, поддерживает resume, сохраняет права. <strong>SSH-туннели</strong> — <code>-L</code> локальный (порт у тебя), <code>-R</code> reverse (порт на сервере), <code>-D</code> SOCKS5-прокси, <code>-J</code> jump host.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">ssh <span class="flag">-i</span> ~/.ssh/key.pem user@server</span>       <span class="comment"># подключение с ключом</span>
+<span class="prompt">$</span> <span class="cmd-text">ssh <span class="flag">-L</span> 8080:localhost:80 user@server</span>    <span class="comment"># локальный туннель → порт 80 удалённо</span>
+<span class="prompt">$</span> <span class="cmd-text">ssh <span class="flag">-L</span> 5432:db.internal:5432 bastion</span>     <span class="comment"># доступ к БД через бастион</span>
+<span class="prompt">$</span> <span class="cmd-text">ssh <span class="flag">-R</span> 9000:localhost:3000 user@server</span>   <span class="comment"># reverse: сервер:9000 → мой:3000</span>
+<span class="prompt">$</span> <span class="cmd-text">ssh <span class="flag">-D</span> 1080 user@server</span>                <span class="comment"># SOCKS5 прокси на 1080</span>
+<span class="prompt">$</span> <span class="cmd-text">ssh <span class="flag">-J</span> bastion@jump.host user@private</span>     <span class="comment"># jump через бастион</span>
+<span class="prompt">$</span> <span class="cmd-text">ssh-copy-id <span class="flag">-i</span> ~/.ssh/id_ed25519.pub user@server</span>  <span class="comment"># залить ключ</span>
+<span class="prompt">$</span> <span class="cmd-text">ssh-keygen <span class="flag">-t</span> ed25519 <span class="flag">-C</span> "deploy@2026"</span>     <span class="comment"># создать ключ (ed25519 быстрее RSA)</span>
+<span class="prompt">$</span> <span class="cmd-text">scp file.tar.gz user@server:<span class="path">/tmp/</span></span>      <span class="comment"># скопировать файл на сервер</span>
+<span class="prompt">$</span> <span class="cmd-text">rsync <span class="flag">-avz</span> <span class="flag">--delete</span> <span class="path">/src/</span> user@srv:<span class="path">/dst/</span>  <span class="comment"># синхронизация</span>
+<span class="prompt">$</span> <span class="cmd-text">rsync <span class="flag">-avz</span> <span class="flag">--exclude='node_modules'</span> <span class="flag">--dry-run</span> <span class="path">/src/</span> srv:<span class="path">/dst/</span>  <span class="comment"># тест</span>
+<span class="prompt">$</span> <span class="cmd-text">rsync <span class="flag">-avz</span> <span class="flag">-e</span> "ssh -i key.pem" <span class="path">/local/</span> srv:<span class="path">/remote/</span></span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Ключи rsync</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">-a</span><span class="flag-val">archive (права, дата, симлинки)</span></div>
+            <div class="flag-pill"><span class="flag-key">-v</span><span class="flag-val">verbose</span></div>
+            <div class="flag-pill"><span class="flag-key">-z</span><span class="flag-val">сжатие</span></div>
+            <div class="flag-pill"><span class="flag-key">--delete</span><span class="flag-val">удалить лишнее на dst</span></div>
+            <div class="flag-pill"><span class="flag-key">--dry-run</span><span class="flag-val">симуляция без изменений</span></div>
+            <div class="flag-pill"><span class="flag-key">--exclude</span><span class="flag-val">исключить шаблон</span></div>
+            <div class="flag-pill"><span class="flag-key">--progress</span><span class="flag-val">показывать прогресс</span></div>
+            <div class="flag-pill"><span class="flag-key">--bwlimit</span><span class="flag-val">лимит KB/s</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">📄 ~/.ssh/config</div>
+          <div class="cmd-theory">Конфиг алиасов и параметров SSH. Спасает от длинных команд и хранит ProxyJump-настройки. Доступы пишем сюда, не в bash-aliases.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">~/.ssh/config</div>
+          <pre><span class="cmd-text">Host bastion</span>
+<span class="cmd-text">  HostName bastion.example.com</span>
+<span class="cmd-text">  User devops</span>
+<span class="cmd-text">  IdentityFile ~/.ssh/bastion_ed25519</span>
+
+<span class="cmd-text">Host prod-*</span>
+<span class="cmd-text">  ProxyJump bastion</span>
+<span class="cmd-text">  User deploy</span>
+<span class="cmd-text">  IdentityFile ~/.ssh/deploy_ed25519</span>
+<span class="cmd-text">  ServerAliveInterval 60</span>
+<span class="cmd-text">  ServerAliveCountMax 3</span>
+
+<span class="cmd-text">Host prod-db</span>
+<span class="cmd-text">  HostName 10.0.5.10</span>
+<span class="cmd-text">  LocalForward 5432 localhost:5432</span>
+
+<span class="output-text">  # теперь: ssh prod-db — и сразу туннель на БД через бастион</span></pre>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">tar / gzip</div>
+          <div class="cmd-theory">Архивирование и сжатие. tar сам по себе не сжимает — только упаковывает. Сжатие добавляют флагами -z (gzip), -j (bzip2), -J (xz).</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">tar <span class="flag">-czf</span> backup.tar.gz <span class="path">/var/www/</span></span>    <span class="comment"># создать архив gzip</span>
+<span class="prompt">$</span> <span class="cmd-text">tar <span class="flag">-xzf</span> backup.tar.gz <span class="flag">-C</span> <span class="path">/restore/</span></span>  <span class="comment"># распаковать в папку</span>
+<span class="prompt">$</span> <span class="cmd-text">tar <span class="flag">-tzf</span> backup.tar.gz</span>               <span class="comment"># просмотр содержимого</span>
+<span class="prompt">$</span> <span class="cmd-text">tar <span class="flag">-czf</span> <span class="flag">--exclude</span>='*.log' app.tar.gz <span class="path">./app/</span></span>  <span class="comment"># с исключениями</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Ключи tar</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">-c</span><span class="flag-val">создать архив</span></div>
+            <div class="flag-pill"><span class="flag-key">-x</span><span class="flag-val">распаковать</span></div>
+            <div class="flag-pill"><span class="flag-key">-t</span><span class="flag-val">просмотр</span></div>
+            <div class="flag-pill"><span class="flag-key">-z</span><span class="flag-val">gzip (.gz)</span></div>
+            <div class="flag-pill"><span class="flag-key">-j</span><span class="flag-val">bzip2 (.bz2)</span></div>
+            <div class="flag-pill"><span class="flag-key">-f</span><span class="flag-val">имя файла</span></div>
+            <div class="flag-pill"><span class="flag-key">-C</span><span class="flag-val">директория назначения</span></div>
+            <div class="flag-pill"><span class="flag-key">-v</span><span class="flag-val">verbose</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="tip">
+      <span class="tip-icon">🎯</span>
+      <span>Частый вопрос: как запомнить флаги tar? Мнемоника: <strong>c</strong>reate / e<strong>x</strong>tract / <strong>t</strong>est + <strong>z</strong>ip + <strong>f</strong>ile. Например: <code>czf</code> = create+gzip+file.</span>
+    </div>
+  </div>
+
+
+  <!-- 8. ADVANCED DEBUGGING -->
+  <div class="category c2" id="cat-debug">
+    <div class="cat-header">
+      <div class="cat-icon">🧠</div>
+      <div>
+        <div class="cat-title">Advanced Debugging & Production</div>
+        <div class="cat-desc">Senior-level Linux troubleshooting и production debugging</div>
+      </div>
+    </div>
+    <div class="commands">
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">journalctl</div>
+          <div class="cmd-theory">Главный инструмент работы с systemd-логами. Используется для диагностики падений сервисов, boot-проблем и production-инцидентов.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">journalctl <span class="flag">-u</span> nginx</span>                 <span class="comment"># логи nginx</span>
+<span class="prompt">$</span> <span class="cmd-text">journalctl <span class="flag">-u</span> nginx <span class="flag">-f</span></span>              <span class="comment"># live logs</span>
+<span class="prompt">$</span> <span class="cmd-text">journalctl <span class="flag">--since</span> "1 hour ago"</span>   <span class="comment"># за последний час</span>
+<span class="prompt">$</span> <span class="cmd-text">journalctl <span class="flag">-p</span> err</span>                  <span class="comment"># только ошибки</span>
+<span class="prompt">$</span> <span class="cmd-text">journalctl <span class="flag">-b</span> <span class="flag">-1</span></span>                  <span class="comment"># предыдущий boot</span></pre>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">ip</div>
+          <div class="cmd-theory">Современный инструмент управления сетью. Замена ifconfig, route и arp.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">ip a</span>                               <span class="comment"># IP адреса</span>
+<span class="prompt">$</span> <span class="cmd-text">ip route</span>                           <span class="comment"># таблица маршрутов</span>
+<span class="prompt">$</span> <span class="cmd-text">ip neigh</span>                           <span class="comment"># ARP таблица</span>
+<span class="prompt">$</span> <span class="cmd-text">ip link show</span>                       <span class="comment"># интерфейсы</span></pre>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">tcpdump</div>
+          <div class="cmd-theory">Сниффер сетевых пакетов. Используется для диагностики DNS, TLS, HTTP и сетевых проблем.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">tcpdump <span class="flag">-i</span> eth0</span>                  <span class="comment"># весь трафик</span>
+<span class="prompt">$</span> <span class="cmd-text">tcpdump port 443</span>                   <span class="comment"># HTTPS трафик</span>
+<span class="prompt">$</span> <span class="cmd-text">tcpdump host 1.1.1.1</span>               <span class="comment"># трафик хоста</span>
+<span class="prompt">$</span> <span class="cmd-text">tcpdump <span class="flag">-nn</span></span>                       <span class="comment"># без DNS resolve</span>
+<span class="prompt">$</span> <span class="cmd-text">tcpdump <span class="flag">-w</span> dump.pcap</span>              <span class="comment"># сохранить capture</span></pre>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">lsof / strace</div>
+          <div class="cmd-theory">Low-level debugging процессов, файлов, сокетов и syscalls.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">lsof <span class="flag">-i</span> :80</span>                      <span class="comment"># кто держит порт</span>
+<span class="prompt">$</span> <span class="cmd-text">lsof <span class="path">/var/log/app.log</span></span>           <span class="comment"># кто использует файл</span>
+<span class="prompt">$</span> <span class="cmd-text">strace <span class="flag">-p</span> 1234</span>                   <span class="comment"># attach к процессу</span>
+<span class="prompt">$</span> <span class="cmd-text">strace <span class="flag">-f</span> python app.py</span>          <span class="comment"># trace дочерних процессов</span></pre>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="tip">
+      <span class="tip-icon">🔥</span>
+      <span>Senior DevOps mindset: сначала проверяй service → logs → ports → resources → network → DNS → firewall → upstream.</span>
+    </div>
+  </div>
+
+
+  <!-- 9. PIPES & REDIRECTS -->
+  <div class="category c1" id="cat-redir">
+    <div class="cat-header">
+      <div class="cat-icon">🔀</div>
+      <div>
+        <div class="cat-title">Pipes, редиректы, потоки</div>
+        <div class="cat-desc">stdin/stdout/stderr, pipes, here-doc, process substitution — фундамент shell</div>
+      </div>
+    </div>
+    <div class="commands">
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">stdin / stdout / stderr</div>
+          <div class="cmd-theory">Три стандартных потока: <strong>0</strong> stdin (ввод), <strong>1</strong> stdout (нормальный вывод), <strong>2</strong> stderr (ошибки). Разделение позволяет фильтровать только нужное и логировать ошибки отдельно.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">cmd &gt; out.log</span>                       <span class="comment"># stdout → файл (перезаписать)</span>
+<span class="prompt">$</span> <span class="cmd-text">cmd &gt;&gt; out.log</span>                      <span class="comment"># stdout → файл (добавить)</span>
+<span class="prompt">$</span> <span class="cmd-text">cmd 2&gt; err.log</span>                      <span class="comment"># stderr → файл</span>
+<span class="prompt">$</span> <span class="cmd-text">cmd &gt; out.log 2&gt;&amp;1</span>                  <span class="comment"># stderr → туда же, куда stdout</span>
+<span class="prompt">$</span> <span class="cmd-text">cmd &amp;&gt; combined.log</span>                 <span class="comment"># bash-shortcut для предыдущего</span>
+<span class="prompt">$</span> <span class="cmd-text">cmd 2&gt;/dev/null</span>                     <span class="comment"># подавить ошибки</span>
+<span class="prompt">$</span> <span class="cmd-text">cmd &gt;/dev/null 2&gt;&amp;1</span>                 <span class="comment"># подавить вообще всё</span>
+<span class="prompt">$</span> <span class="cmd-text">cmd &lt; input.txt</span>                     <span class="comment"># файл → stdin</span>
+<span class="prompt">$</span> <span class="cmd-text">cmd1 | cmd2 |&amp; cmd3</span>                 <span class="comment"># pipe stdout И stderr (bash 4+)</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Шпаргалка</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">&gt;</span><span class="flag-val">stdout overwrite</span></div>
+            <div class="flag-pill"><span class="flag-key">&gt;&gt;</span><span class="flag-val">stdout append</span></div>
+            <div class="flag-pill"><span class="flag-key">2&gt;</span><span class="flag-val">stderr</span></div>
+            <div class="flag-pill"><span class="flag-key">2&gt;&amp;1</span><span class="flag-val">stderr → stdout</span></div>
+            <div class="flag-pill"><span class="flag-key">&amp;&gt;</span><span class="flag-val">оба в файл</span></div>
+            <div class="flag-pill"><span class="flag-key">/dev/null</span><span class="flag-val">мусорка</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">tee</div>
+          <div class="cmd-theory">Раздвоить вывод: одновременно в файл и на экран. Незаменимо для долгих команд, когда хочешь и наблюдать, и сохранить лог. С <code>sudo</code> — единственный нормальный способ записать в защищённый файл из пайпа.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">make install 2&gt;&amp;1 | tee build.log</span>      <span class="comment"># смотрим и сохраняем</span>
+<span class="prompt">$</span> <span class="cmd-text">cmd | tee <span class="flag">-a</span> log.txt</span>                  <span class="comment"># append</span>
+<span class="prompt">$</span> <span class="cmd-text">echo "127.0.0.1 myhost" | sudo tee <span class="flag">-a</span> <span class="path">/etc/hosts</span></span>  <span class="comment"># sudo + редирект</span>
+<span class="prompt">$</span> <span class="cmd-text">cmd | tee &gt;(grep ERROR &gt; err.log) | wc <span class="flag">-l</span></span>   <span class="comment"># process substitution</span></pre>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">here-doc / here-string</div>
+          <div class="cmd-theory">Передать многострочный текст команде через stdin. Часто используется в скриптах для конфигов, SQL-запросов, SSH-сессий с командами.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">cat &lt;&lt;EOF &gt; config.yaml
+server:
+  port: 8080
+EOF</span>
+
+<span class="prompt">$</span> <span class="cmd-text">ssh server &lt;&lt;'EOF'
+  cd /opt/app
+  git pull
+  systemctl restart app
+EOF</span>                                          <span class="comment"># 'EOF' — без подстановки переменных</span>
+
+<span class="prompt">$</span> <span class="cmd-text">psql &lt;&lt;-EOF
+  SELECT count(*) FROM users;
+EOF</span>                                          <span class="comment"># &lt;&lt;- убирает leading tabs</span>
+
+<span class="prompt">$</span> <span class="cmd-text">grep "error" &lt;&lt;&lt; "$LOG_LINE"</span>          <span class="comment"># here-string (одна строка)</span></pre>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">Цепочка операторов</div>
+          <div class="cmd-theory">Контроль выполнения по результату. <strong>$?</strong> — код возврата последней команды (0 = успех).</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">make build &amp;&amp; make test</span>             <span class="comment"># test только если build успешен</span>
+<span class="prompt">$</span> <span class="cmd-text">curl -sf $URL || echo "FAILED"</span>       <span class="comment"># echo только при ошибке</span>
+<span class="prompt">$</span> <span class="cmd-text">cmd1; cmd2; cmd3</span>                     <span class="comment"># последовательно (независимо от exit code)</span>
+<span class="prompt">$</span> <span class="cmd-text">(cd /tmp &amp;&amp; ls)</span>                      <span class="comment"># subshell — cd не повлияет на текущий</span>
+<span class="prompt">$</span> <span class="cmd-text">{ echo A; echo B; } &gt; file</span>           <span class="comment"># группировка без subshell</span>
+<span class="prompt">$</span> <span class="cmd-text">cmd; echo "exit=$?"</span>                  <span class="comment"># посмотреть код возврата</span>
+<span class="prompt">$</span> <span class="cmd-text">set <span class="flag">-euo</span> pipefail</span>                   <span class="comment"># строгий режим для скриптов</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">set-флаги для скриптов</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">-e</span><span class="flag-val">падать при ошибке</span></div>
+            <div class="flag-pill"><span class="flag-key">-u</span><span class="flag-val">unset variable = error</span></div>
+            <div class="flag-pill"><span class="flag-key">-o pipefail</span><span class="flag-val">падать на ошибке внутри pipe</span></div>
+            <div class="flag-pill"><span class="flag-key">-x</span><span class="flag-val">trace команд</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="tip">
+      <span class="tip-icon">💡</span>
+      <span>Каждый production-скрипт должен начинаться с <code>set -euo pipefail</code>. Без этого ошибки молча проглатываются и ты узнаёшь о них через два часа в инциденте.</span>
+    </div>
+  </div>
+
+
+  <!-- 10. CRON & TIMERS -->
+  <div class="category c4" id="cat-cron">
+    <div class="cat-header">
+      <div class="cat-icon">⏰</div>
+      <div>
+        <div class="cat-title">Cron и systemd timers</div>
+        <div class="cat-desc">Запуск задач по расписанию: бэкапы, ротация, очистка</div>
+      </div>
+    </div>
+    <div class="commands">
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">crontab</div>
+          <div class="cmd-theory">Классика планировщика. Формат: <code>m h dom mon dow</code>. Каждое поле принимает число, <code>*</code>, диапазон <code>1-5</code>, список <code>1,15</code> или шаг <code>*/5</code>. <strong>Важно:</strong> cron не наследует $PATH из shell — указывай абсолютные пути.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">crontab <span class="flag">-e</span></span>                          <span class="comment"># редактировать свой crontab</span>
+<span class="prompt">$</span> <span class="cmd-text">crontab <span class="flag">-l</span></span>                          <span class="comment"># посмотреть</span>
+<span class="prompt">$</span> <span class="cmd-text">crontab <span class="flag">-u</span> deploy <span class="flag">-l</span></span>                 <span class="comment"># crontab другого пользователя</span>
+<span class="output-text">  # формат строки:
+  # ┌─ минута (0-59)
+  # │  ┌─ час (0-23)
+  # │  │  ┌─ день месяца (1-31)
+  # │  │  │  ┌─ месяц (1-12)
+  # │  │  │  │  ┌─ день недели (0-7, 0 и 7 = вс)
+  # │  │  │  │  │
+  # *  *  *  *  * command</span>
+
+<span class="cmd-text">0 3 * * *      /opt/backup.sh &gt;&gt; /var/log/backup.log 2&gt;&amp;1   </span><span class="comment"># каждый день в 3:00</span>
+<span class="cmd-text">*/5 * * * *    /usr/local/bin/healthcheck.sh                </span><span class="comment"># каждые 5 минут</span>
+<span class="cmd-text">0 */6 * * *    /opt/sync.sh                                 </span><span class="comment"># каждые 6 часов</span>
+<span class="cmd-text">0 0 * * 0      /opt/weekly-cleanup.sh                       </span><span class="comment"># каждое воскресенье</span>
+<span class="cmd-text">@reboot        /opt/start.sh                                </span><span class="comment"># при старте</span>
+<span class="cmd-text">@daily         /opt/backup.sh                               </span><span class="comment"># раз в сутки (= 0 0 * * *)</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Где смотреть</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">/etc/crontab</span><span class="flag-val">системный</span></div>
+            <div class="flag-pill"><span class="flag-key">/etc/cron.d/</span><span class="flag-val">drop-in файлы</span></div>
+            <div class="flag-pill"><span class="flag-key">/var/spool/cron/</span><span class="flag-val">пользовательские</span></div>
+            <div class="flag-pill"><span class="flag-key">/var/log/cron</span><span class="flag-val">логи</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">systemd timer</div>
+          <div class="cmd-theory">Современная альтернатива cron. Плюсы: ведёт логи через journalctl, поддерживает <code>OnCalendar</code> в человеческом формате, может запускать пропущенные при выключении (<code>Persistent=true</code>), интегрирован с systemd-сервисами.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">backup.timer + backup.service</div>
+          <pre><span class="comment"># /etc/systemd/system/backup.service</span>
+<span class="cmd-text">[Unit]
+Description=Daily backup
+
+[Service]
+Type=oneshot
+ExecStart=/opt/backup.sh</span>
+
+<span class="comment"># /etc/systemd/system/backup.timer</span>
+<span class="cmd-text">[Unit]
+Description=Run backup daily
+
+[Timer]
+OnCalendar=*-*-* 03:00:00
+RandomizedDelaySec=10min
+Persistent=true
+
+[Install]
+WantedBy=timers.target</span>
+
+<span class="prompt">$</span> <span class="cmd-text">systemctl enable <span class="flag">--now</span> backup.timer</span>      <span class="comment"># активация</span>
+<span class="prompt">$</span> <span class="cmd-text">systemctl list-timers</span>                  <span class="comment"># все таймеры: next run, last run</span>
+<span class="prompt">$</span> <span class="cmd-text">journalctl <span class="flag">-u</span> backup.service</span>          <span class="comment"># логи выполнения</span></pre>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">logrotate</div>
+          <div class="cmd-theory">Ротация логов: сжимает старые, удаляет очень старые, не даёт диску забиться. Запускается через <code>cron.daily</code> или systemd-timer. Конфиги в <code>/etc/logrotate.d/</code>.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">/etc/logrotate.d/myapp</div>
+          <pre><span class="cmd-text"><span class="path">/var/log/myapp/*.log</span> {
+    daily
+    rotate 14
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 myapp myapp
+    sharedscripts
+    postrotate
+        systemctl reload myapp &gt; /dev/null 2&gt;&amp;1 || true
+    endscript
+}</span>
+
+<span class="prompt">$</span> <span class="cmd-text">logrotate <span class="flag">-d</span> <span class="path">/etc/logrotate.d/myapp</span></span>     <span class="comment"># debug (dry-run)</span>
+<span class="prompt">$</span> <span class="cmd-text">logrotate <span class="flag">-f</span> <span class="path">/etc/logrotate.conf</span></span>          <span class="comment"># принудительная ротация</span></pre>
+        </div>
+      </div>
+
+    </div>
+    <div class="tip">
+      <span class="tip-icon">💡</span>
+      <span>Главные грабли cron: <strong>1)</strong> $PATH минимальный — используй абсолютные пути; <strong>2)</strong> вывод и stderr пропадают, если не редиректить (<code>&gt;&gt; file 2&gt;&amp;1</code>); <strong>3)</strong> процент <code>%</code> надо экранировать <code>\%</code>; <strong>4)</strong> проверь часовой пояс сервера (<code>timedatectl</code>).</span>
+    </div>
+  </div>
+
+
+  <!-- 11. SECURITY & FIREWALL -->
+  <div class="category c5" id="cat-sec">
+    <div class="cat-header">
+      <div class="cat-icon">🛡️</div>
+      <div>
+        <div class="cat-title">Безопасность и Firewall</div>
+        <div class="cat-desc">iptables, nftables, ufw, fail2ban, аудит</div>
+      </div>
+    </div>
+    <div class="commands">
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">iptables / nftables</div>
+          <div class="cmd-theory">Netfilter — firewall в ядре Linux. <code>iptables</code> — классика, <code>nftables</code> — современная замена (один tool вместо iptables/ip6tables/arptables). Правила обрабатываются <strong>сверху вниз</strong>, первое совпадение выигрывает.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры iptables</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">iptables <span class="flag">-L</span> <span class="flag">-n</span> <span class="flag">-v</span> <span class="flag">--line-numbers</span></span>     <span class="comment"># все правила с счётчиками</span>
+<span class="prompt">$</span> <span class="cmd-text">iptables <span class="flag">-A</span> INPUT <span class="flag">-p</span> tcp <span class="flag">--dport</span> 22 <span class="flag">-j</span> ACCEPT</span>     <span class="comment"># разрешить SSH</span>
+<span class="prompt">$</span> <span class="cmd-text">iptables <span class="flag">-A</span> INPUT <span class="flag">-s</span> 10.0.0.0/8 <span class="flag">-j</span> ACCEPT</span>     <span class="comment"># разрешить подсеть</span>
+<span class="prompt">$</span> <span class="cmd-text">iptables <span class="flag">-A</span> INPUT <span class="flag">-m</span> state <span class="flag">--state</span> ESTABLISHED,RELATED <span class="flag">-j</span> ACCEPT</span>
+<span class="prompt">$</span> <span class="cmd-text">iptables <span class="flag">-A</span> INPUT <span class="flag">-j</span> DROP</span>               <span class="comment"># дропать остальное (последнее правило!)</span>
+<span class="prompt">$</span> <span class="cmd-text">iptables <span class="flag">-D</span> INPUT 5</span>                    <span class="comment"># удалить правило №5</span>
+<span class="prompt">$</span> <span class="cmd-text">iptables <span class="flag">-t</span> nat <span class="flag">-A</span> PREROUTING <span class="flag">-p</span> tcp <span class="flag">--dport</span> 80 <span class="flag">-j</span> REDIRECT <span class="flag">--to-port</span> 8080</span>
+<span class="prompt">$</span> <span class="cmd-text">iptables-save &gt; /etc/iptables/rules.v4</span>  <span class="comment"># сохранить (правила сбросятся после ребута!)</span></pre>
+        </div>
+        <div class="flags-section">
+          <div class="flags-label">Chains и actions</div>
+          <div class="flags-grid">
+            <div class="flag-pill"><span class="flag-key">INPUT</span><span class="flag-val">входящие к нам</span></div>
+            <div class="flag-pill"><span class="flag-key">OUTPUT</span><span class="flag-val">исходящие от нас</span></div>
+            <div class="flag-pill"><span class="flag-key">FORWARD</span><span class="flag-val">через нас (router)</span></div>
+            <div class="flag-pill"><span class="flag-key">ACCEPT</span><span class="flag-val">пропустить</span></div>
+            <div class="flag-pill"><span class="flag-key">DROP</span><span class="flag-val">молча отбросить</span></div>
+            <div class="flag-pill"><span class="flag-key">REJECT</span><span class="flag-val">отбросить + ICMP</span></div>
+            <div class="flag-pill"><span class="flag-key">-A/-I/-D</span><span class="flag-val">append/insert/delete</span></div>
+            <div class="flag-pill"><span class="flag-key">-t nat</span><span class="flag-val">NAT-таблица</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">ufw / firewalld</div>
+          <div class="cmd-theory">Обёртки над iptables/nftables для людей. <strong>ufw</strong> (Ubuntu) — простая. <strong>firewalld</strong> (RHEL/CentOS) — с концепцией зон.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">ufw status verbose</span>                  <span class="comment"># текущее состояние</span>
+<span class="prompt">$</span> <span class="cmd-text">ufw default deny incoming</span>            <span class="comment"># по умолчанию запретить</span>
+<span class="prompt">$</span> <span class="cmd-text">ufw allow 22/tcp</span>                     <span class="comment"># SSH</span>
+<span class="prompt">$</span> <span class="cmd-text">ufw allow from 10.0.0.0/8 to any port 5432</span>  <span class="comment"># БД только из VPC</span>
+<span class="prompt">$</span> <span class="cmd-text">ufw limit 22/tcp</span>                     <span class="comment"># rate-limit (защита от brute-force)</span>
+<span class="prompt">$</span> <span class="cmd-text">ufw enable</span>                           <span class="comment"># активировать</span>
+
+<span class="prompt">$</span> <span class="cmd-text">firewall-cmd <span class="flag">--list-all</span></span>             <span class="comment"># firewalld: показать всё</span>
+<span class="prompt">$</span> <span class="cmd-text">firewall-cmd <span class="flag">--permanent</span> <span class="flag">--add-service=https</span></span>
+<span class="prompt">$</span> <span class="cmd-text">firewall-cmd <span class="flag">--reload</span></span>                <span class="comment"># применить изменения</span></pre>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">SSH hardening / fail2ban</div>
+          <div class="cmd-theory">Минимальный security-чеклист для production-сервера. SSH — это первая дверь, через неё ломаются чаще всего.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">/etc/ssh/sshd_config</div>
+          <pre><span class="cmd-text">PermitRootLogin no</span>                  <span class="comment"># никогда root по ssh</span>
+<span class="cmd-text">PasswordAuthentication no</span>           <span class="comment"># только ключи</span>
+<span class="cmd-text">PubkeyAuthentication yes</span>
+<span class="cmd-text">ChallengeResponseAuthentication no</span>
+<span class="cmd-text">UsePAM yes</span>
+<span class="cmd-text">X11Forwarding no</span>
+<span class="cmd-text">MaxAuthTries 3</span>
+<span class="cmd-text">ClientAliveInterval 300</span>
+<span class="cmd-text">AllowUsers deploy ops</span>              <span class="comment"># whitelist</span>
+<span class="cmd-text">Port 2222</span>                           <span class="comment"># не панацея, но снижает шум в логах</span>
+
+<span class="prompt">$</span> <span class="cmd-text">sshd <span class="flag">-t</span></span>                              <span class="comment"># проверить конфиг ПЕРЕД рестартом!</span>
+<span class="prompt">$</span> <span class="cmd-text">systemctl restart sshd</span>
+
+<span class="prompt">$</span> <span class="cmd-text">fail2ban-client status</span>               <span class="comment"># fail2ban: что мониторится</span>
+<span class="prompt">$</span> <span class="cmd-text">fail2ban-client status sshd</span>           <span class="comment"># jail sshd: забаненные IP</span>
+<span class="prompt">$</span> <span class="cmd-text">fail2ban-client set sshd unbanip 1.2.3.4</span></pre>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">ulimit / limits.conf</div>
+          <div class="cmd-theory">Лимиты ресурсов на процесс/сессию. Самый частый — <code>nofile</code> (max open files). Дефолтные 1024 ломают БД, веб-сервера и контейнеры под нагрузкой.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">ulimit <span class="flag">-a</span></span>                            <span class="comment"># все лимиты текущей сессии</span>
+<span class="prompt">$</span> <span class="cmd-text">ulimit <span class="flag">-n</span></span>                            <span class="comment"># max open files</span>
+<span class="prompt">$</span> <span class="cmd-text">ulimit <span class="flag">-n</span> 65536</span>                      <span class="comment"># поднять (только до hard limit)</span>
+<span class="prompt">$</span> <span class="cmd-text">cat /proc/1234/limits</span>                <span class="comment"># лимиты конкретного процесса</span>
+<span class="output-text">  # для постоянных лимитов — /etc/security/limits.conf:
+  # deploy  soft  nofile  65536
+  # deploy  hard  nofile  65536
+  # для systemd — LimitNOFILE=65536 в [Service]</span></pre>
+        </div>
+      </div>
+
+    </div>
+    <div class="warn-box">
+      <span class="tip-icon">⚠️</span>
+      <span>Перед <code>iptables -P INPUT DROP</code> или <code>ufw enable</code> на удалённом сервере — <strong>ВСЕГДА</strong> сначала разреши SSH! Иначе залочишься. На облачных VM держи в карман emergency-доступ через web-console / serial.</span>
+    </div>
+  </div>
+
+
+  <!-- 12. PERFORMANCE & I/O -->
+  <div class="category c6" id="cat-perf">
+    <div class="cat-header">
+      <div class="cat-icon">📊</div>
+      <div>
+        <div class="cat-title">Performance &amp; I/O</div>
+        <div class="cat-desc">iostat, iotop, sar, dstat, pidstat, atop — глубокий анализ</div>
+      </div>
+    </div>
+    <div class="commands">
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">iostat / iotop</div>
+          <div class="cmd-theory">Анализ дисковой подсистемы. <strong>iostat</strong> — статистика по устройствам, ключевая метрика <code>%util</code> (близко к 100 = диск перегружен) и <code>await</code> (latency запросов). <strong>iotop</strong> — кто из процессов грузит диск (как top, но про I/O).</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">iostat <span class="flag">-xz</span> 1</span>                       <span class="comment"># расширенная статистика, обновление 1с</span>
+<span class="prompt">$</span> <span class="cmd-text">iostat <span class="flag">-xz</span> 1 5</span>                     <span class="comment"># 5 замеров и выйти</span>
+<span class="prompt">$</span> <span class="cmd-text">iotop <span class="flag">-oP</span></span>                          <span class="comment"># только активные процессы, без потоков</span>
+<span class="prompt">$</span> <span class="cmd-text">iotop <span class="flag">-b</span> <span class="flag">-n</span> 3</span>                       <span class="comment"># batch для скриптов</span>
+<span class="output-text">  # iostat ключевые колонки:
+  # r/s, w/s    — IOPS чтения/записи
+  # rkB/s, wkB/s — пропускная способность
+  # await       — средняя latency запроса (мс)
+  # %util       — % времени, когда диск был занят
+  # aqu-sz      — средняя длина очереди</span></pre>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">sar (sysstat)</div>
+          <div class="cmd-theory"><strong>Главный инструмент исторического анализа</strong>. Демон <code>sysstat</code> непрерывно собирает метрики (CPU, mem, disk, net) и сохраняет в <code>/var/log/sa/</code>. Можно посмотреть, что творилось на сервере вчера в 03:00.</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">sar <span class="flag">-u</span> 1 5</span>                          <span class="comment"># CPU сейчас</span>
+<span class="prompt">$</span> <span class="cmd-text">sar <span class="flag">-r</span> 1 5</span>                          <span class="comment"># память</span>
+<span class="prompt">$</span> <span class="cmd-text">sar <span class="flag">-d</span> 1 5</span>                          <span class="comment"># диски</span>
+<span class="prompt">$</span> <span class="cmd-text">sar <span class="flag">-n</span> DEV 1 5</span>                       <span class="comment"># сеть</span>
+<span class="prompt">$</span> <span class="cmd-text">sar <span class="flag">-u</span> <span class="flag">-f</span> /var/log/sa/sa15</span>             <span class="comment"># CPU 15-го числа</span>
+<span class="prompt">$</span> <span class="cmd-text">sar <span class="flag">-q</span> <span class="flag">-s</span> 03:00:00 <span class="flag">-e</span> 04:00:00</span>        <span class="comment"># LA с 3 до 4 утра</span>
+<span class="prompt">$</span> <span class="cmd-text">sar <span class="flag">-B</span></span>                              <span class="comment"># paging (swap-активность)</span></pre>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">pidstat / dstat / atop</div>
+          <div class="cmd-theory"><strong>pidstat</strong> — статистика по конкретным процессам (CPU, mem, I/O, page faults) с историей. <strong>dstat</strong> — комбинированный live-вывод. <strong>atop</strong> — как top, но сохраняет историю (post-mortem анализ инцидентов).</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Примеры</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">pidstat 1</span>                            <span class="comment"># CPU всех процессов</span>
+<span class="prompt">$</span> <span class="cmd-text">pidstat <span class="flag">-r</span> 1</span>                         <span class="comment"># память + page faults</span>
+<span class="prompt">$</span> <span class="cmd-text">pidstat <span class="flag">-d</span> 1</span>                         <span class="comment"># дисковая активность</span>
+<span class="prompt">$</span> <span class="cmd-text">pidstat <span class="flag">-p</span> 1234 1</span>                    <span class="comment"># конкретный PID</span>
+<span class="prompt">$</span> <span class="cmd-text">pidstat <span class="flag">-t</span> <span class="flag">-p</span> 1234 1</span>                 <span class="comment"># по потокам</span>
+<span class="prompt">$</span> <span class="cmd-text">dstat <span class="flag">-tcmdn</span></span>                       <span class="comment"># time, cpu, mem, disk, net в одной таблице</span>
+<span class="prompt">$</span> <span class="cmd-text">atop</span>                                <span class="comment"># live</span>
+<span class="prompt">$</span> <span class="cmd-text">atop <span class="flag">-r</span> /var/log/atop/atop_20260513</span>    <span class="comment"># история за вчера</span></pre>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-top">
+          <div class="cmd-name">Netflix 60-sec perf checklist</div>
+          <div class="cmd-theory">Канонический набор для первой минуты на новом сервере с проблемой. От Brendan Gregg (Netflix Performance Engineering).</div>
+        </div>
+        <div class="code-section">
+          <div class="code-label">Запускай по очереди</div>
+          <pre><span class="prompt">$</span> <span class="cmd-text">uptime</span>                              <span class="comment"># 1. LA: растёт или стабилен?</span>
+<span class="prompt">$</span> <span class="cmd-text">dmesg | tail</span>                        <span class="comment"># 2. ядро: OOM? драйверы?</span>
+<span class="prompt">$</span> <span class="cmd-text">vmstat 1</span>                            <span class="comment"># 3. CPU/mem/swap общая картина</span>
+<span class="prompt">$</span> <span class="cmd-text">mpstat <span class="flag">-P</span> ALL 1</span>                      <span class="comment"># 4. CPU per-core (один загружен?)</span>
+<span class="prompt">$</span> <span class="cmd-text">pidstat 1</span>                           <span class="comment"># 5. топ-процессы CPU</span>
+<span class="prompt">$</span> <span class="cmd-text">iostat <span class="flag">-xz</span> 1</span>                        <span class="comment"># 6. диски: util, await</span>
+<span class="prompt">$</span> <span class="cmd-text">free <span class="flag">-m</span></span>                              <span class="comment"># 7. память</span>
+<span class="prompt">$</span> <span class="cmd-text">sar <span class="flag">-n</span> DEV 1</span>                          <span class="comment"># 8. сеть: throughput</span>
+<span class="prompt">$</span> <span class="cmd-text">sar <span class="flag">-n</span> TCP,ETCP 1</span>                     <span class="comment"># 9. TCP errors, ретрансмиты</span>
+<span class="prompt">$</span> <span class="cmd-text">top</span>                                 <span class="comment"># 10. живая картина в конце</span></pre>
+        </div>
+      </div>
+
+    </div>
+    <div class="tip">
+      <span class="tip-icon">🎯</span>
+      <span><strong>USE method</strong> (Brendan Gregg) для каждого ресурса проверяй: <strong>U</strong>tilization (загружен %), <strong>S</strong>aturation (есть очередь?), <strong>E</strong>rrors (есть ошибки?). Ресурсы: CPU, mem, disk, net, потоки, sockets. Метод покрывает 80% инцидентов.</span>
+    </div>
+  </div>
+
+
+  <!-- 13. PRODUCTION RUNBOOK -->
+  <div class="category c4" id="cat-runbook">
+    <div class="cat-header">
+      <div class="cat-icon">🚨</div>
+      <div>
+        <div class="cat-title">Production Runbook</div>
+        <div class="cat-desc">Чёткие алгоритмы для типовых инцидентов — то, что любят спрашивать senior'ы</div>
+      </div>
+    </div>
+
+    <div class="runbook">
+      <div class="runbook-title">🔥 Инцидент: сервер тормозит</div>
+      <div class="runbook-steps">
+        <div class="runbook-step"><strong>Подключись и не паникуй:</strong> <code>ssh</code> на проблемный хост, проверь <code>w</code> / <code>uptime</code>. Запиши LA — будешь сравнивать.</div>
+        <div class="runbook-step"><strong>Категоризируй ботлнек:</strong> <code>vmstat 1</code>. Высокий <code>us</code> → CPU. Высокий <code>wa</code> → I/O. Высокий <code>si/so</code> → swap. Растёт <code>r</code> (run queue) → перегрузка.</div>
+        <div class="runbook-step"><strong>Найди виновника:</strong> по CPU — <code>top</code>/<code>pidstat 1</code>; по I/O — <code>iotop -oP</code>; по памяти — <code>ps aux --sort=-%mem | head</code>.</div>
+        <div class="runbook-step"><strong>Проверь зависимости:</strong> сетевые сервисы — <code>ss -s</code>; БД — есть ли блокировки/долгие запросы; внешние API — <code>curl -w</code> latency.</div>
+        <div class="runbook-step"><strong>Смотри логи приложения и системы:</strong> <code>journalctl -p err --since "10 min ago"</code>, <code>dmesg -T | tail -50</code>, логи приложения.</div>
+        <div class="runbook-step"><strong>Краткосрочная стабилизация:</strong> рестарт, скейл-аут, rollback деплоя, drain трафика. <strong>НЕ начинай дебажить root cause в острой фазе</strong> — стабилизация → расследование.</div>
+        <div class="runbook-step"><strong>Постмортем:</strong> сохрани логи, <code>atop</code>-историю, метрики. Напиши blameless RCA: что было, что сделали, что улучшим.</div>
+      </div>
+    </div>
+
+    <div class="runbook">
+      <div class="runbook-title">💾 Инцидент: "диск переполнен"</div>
+      <div class="runbook-steps">
+        <div class="runbook-step"><strong>Подтверди:</strong> <code>df -h</code> — какой раздел. Если 100% — приложение уже падает с <code>ENOSPC</code>.</div>
+        <div class="runbook-step"><strong>Проверь inode'ы:</strong> <code>df -i</code>. Бывает, что байтов полно, а inode'ы кончились (миллионы мелких сессионных файлов).</div>
+        <div class="runbook-step"><strong>Найди где:</strong> <code>du -h --max-depth=1 / 2&gt;/dev/null | sort -rh | head</code>. Спускайся вглубь.</div>
+        <div class="runbook-step"><strong>Удалённые открытые файлы:</strong> если <code>du</code> и <code>df</code> расходятся — <code>lsof | grep deleted | sort -k7 -rn | head</code>. Нужен рестарт процесса (или <code>: &gt; /proc/PID/fd/N</code> освободит сейчас).</div>
+        <div class="runbook-step"><strong>Бэкап перед удалением:</strong> сожми и сдвинь то, что точно мусор, но удалить страшно: <code>gzip /var/log/big.log</code>.</div>
+        <div class="runbook-step"><strong>Долгосрочно:</strong> настрой <code>logrotate</code>, добавь алерты на 80% диска, mount-poins по сервисам (логи на отдельный диск).</div>
+      </div>
+    </div>
+
+    <div class="runbook">
+      <div class="runbook-title">🐌 Инцидент: "приложение медленно отвечает"</div>
+      <div class="runbook-steps">
+        <div class="runbook-step"><strong>Воспроизведи:</strong> <code>curl -w "@curl-fmt.txt" -o /dev/null -s https://api/health</code> — увидишь TCP/TLS/TTFB latency отдельно.</div>
+        <div class="runbook-step"><strong>Локализуй слой:</strong> с LB → app slow? с app → DB slow? с app → external slow? Если у тебя есть APM (DataDog/NewRelic/Sentry) — смотри traces.</div>
+        <div class="runbook-step"><strong>Проверь pool'ы:</strong> connection pool на БД — не исчерпан ли? <code>ss -s</code> — много ли соединений? Воркеры приложения — все заняты?</div>
+        <div class="runbook-step"><strong>База данных:</strong> <code>SELECT * FROM pg_stat_activity WHERE state &lt;&gt; 'idle'</code>, долгие запросы, locks, vacuum.</div>
+        <div class="runbook-step"><strong>Сеть:</strong> <code>mtr</code> до зависимостей, <code>tcpdump</code> на ретрансмиты, <code>sar -n TCP,ETCP 1</code>.</div>
+        <div class="runbook-step"><strong>Ресурсы хоста:</strong> CPU saturated? GC pauses? Swap? Iowait?</div>
+        <div class="runbook-step"><strong>Что изменилось:</strong> релиз, конфиг, миграция, рост трафика? <code>journalctl --since</code> со старта инцидента.</div>
+      </div>
+    </div>
+
+    <div class="runbook">
+      <div class="runbook-title">🔒 Инцидент: "не могу подключиться по SSH"</div>
+      <div class="runbook-steps">
+        <div class="runbook-step"><strong>С другого хоста проверь, жив ли хост:</strong> <code>ping</code>, <code>nc -zv host 22</code>.</div>
+        <div class="runbook-step"><strong>Verbose SSH:</strong> <code>ssh -vvv user@host</code> — увидишь на каком этапе обрыв (DNS, TCP, ключи, auth).</div>
+        <div class="runbook-step"><strong>Right key?</strong> Проверь <code>~/.ssh/config</code> и <code>-i</code>. <code>ssh-add -l</code> — какие ключи в агенте.</div>
+        <div class="runbook-step"><strong>Если есть доступ к хосту иначе</strong> (cloud console, IPMI): <code>journalctl -u sshd -f</code>, <code>sshd -t</code> (валидность конфига), <code>fail2ban-client status sshd</code> (не забанен ли IP).</div>
+        <div class="runbook-step"><strong>Firewall:</strong> <code>iptables -L -n</code> на хосте + Security Groups в облаке.</div>
+        <div class="runbook-step"><strong>Лимит сессий:</strong> <code>MaxSessions</code>, <code>MaxStartups</code> в sshd_config; <code>ulimit -n</code>; нет ли исчерпания PAM.</div>
+      </div>
+    </div>
+
+    <div class="runbook">
+      <div class="runbook-title">📦 Инцидент: "контейнер постоянно рестартует"</div>
+      <div class="runbook-steps">
+        <div class="runbook-step"><strong>Логи:</strong> <code>docker logs --tail 200 -f &lt;id&gt;</code> или <code>kubectl logs --previous &lt;pod&gt;</code> для упавшего контейнера.</div>
+        <div class="runbook-step"><strong>Exit code:</strong> <code>docker inspect &lt;id&gt; --format '{{.State.ExitCode}}'</code>. <strong>137</strong> = OOM-kill, <strong>139</strong> = segfault, <strong>143</strong> = SIGTERM.</div>
+        <div class="runbook-step"><strong>OOM-kill:</strong> <code>dmesg -T | grep -i "killed process"</code>; в k8s — <code>kubectl describe pod</code>, ищи <code>OOMKilled</code>. Решение: поднять <code>memory.limit</code> или починить утечку.</div>
+        <div class="runbook-step"><strong>Healthcheck/probes:</strong> liveness/readiness падают слишком рано? Слишком жёсткие timeout? Приложение медленно стартует.</div>
+        <div class="runbook-step"><strong>Зависимости:</strong> БД, секреты, конфиги — доступны при старте? Часто <code>CrashLoopBackOff</code> = init не находит DSN.</div>
+        <div class="runbook-step"><strong>Запусти руками:</strong> <code>docker run --entrypoint sh -it &lt;image&gt;</code> или <code>kubectl debug</code> — посмотри что внутри, проверь права, env.</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<footer>
+  Собрано для подготовки к DevOps/Backend интервью · <span>Linux is life</span> · удачи на собесе 🚀
+
+<div class="warn-box" style="margin-top:20px;">
+  <span class="tip-icon">⚠️</span>
+  <span><strong>Production safety:</strong> никогда не используй <code>chmod 777</code> на production. Перед <code>rm -rf $VAR/</code> всегда echo'ай переменную. Все деструктивные команды на проде запускай через peer review. Никогда не правь <code>/etc/fstab</code> без бэкапа и без знания, как загрузиться в rescue mode.</span>
+</div>
+
+</footer>
+
+</body>
+</html>
