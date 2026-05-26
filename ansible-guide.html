@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ansible для Middle+</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'JetBrains Mono','Fira Code','Courier New',monospace; background:#0d1117; color:#e6edf3; height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+#header { background:linear-gradient(135deg,#161b22,#0d1117); border-bottom:1px solid #21262d; padding:14px 24px; flex-shrink:0; display:flex; align-items:center; gap:12px; }
+#header h1 { font-size:19px; color:#f0f6fc; }
+#header p { font-size:11px; color:#8b949e; font-family:sans-serif; margin-top:2px; }
+#body { display:flex; flex:1; overflow:hidden; }
+#sidebar { width:220px; min-width:220px; background:#161b22; border-right:1px solid #21262d; overflow-y:auto; padding:8px 0; }
+.nav-btn { display:flex; align-items:flex-start; gap:10px; width:100%; padding:10px 16px; background:transparent; border:none; border-left:3px solid transparent; cursor:pointer; text-align:left; transition:all .15s; }
+.nav-btn:hover { background:rgba(255,255,255,.03); }
+.nav-btn.active { background:linear-gradient(90deg,rgba(35,134,54,.15),transparent); border-left-color:#238636; }
+.nav-icon { font-size:15px; flex-shrink:0; margin-top:1px; }
+.nav-label { font-size:12px; color:#8b949e; line-height:1.3; font-family:sans-serif; }
+.nav-btn.active .nav-label { color:#e6edf3; font-weight:700; }
+#main { flex:1; overflow-y:auto; padding:24px; }
+#content { max-width:820px; margin:0 auto; }
+.t-head { margin-bottom:22px; }
+.t-row { display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+.t-icon { font-size:30px; }
+.t-title { font-size:21px; font-weight:700; color:#f0f6fc; }
+.t-sub { font-size:13px; color:#8b949e; font-family:sans-serif; margin-top:2px; }
+.divider { height:1px; background:linear-gradient(90deg,#238636,transparent); margin-bottom:22px; }
+.block { margin-bottom:22px; }
+.code-block { background:#161b22; border:1px solid #30363d; border-radius:8px; overflow:hidden; }
+.code-hdr { display:flex; justify-content:space-between; align-items:center; padding:8px 16px; background:#21262d; border-bottom:1px solid #30363d; }
+.code-ttl { font-size:12px; color:#8b949e; font-family:sans-serif; }
+.copy-btn { background:transparent; border:1px solid #30363d; color:#8b949e; border-radius:4px; padding:3px 10px; font-size:11px; cursor:pointer; font-family:sans-serif; transition:all .15s; }
+.copy-btn:hover { border-color:#58a6ff; color:#58a6ff; }
+.copy-btn.copied { background:#238636; border-color:#238636; color:#fff; }
+pre.code-body { margin:0; padding:16px; font-size:12.5px; line-height:1.6; overflow-x:auto; color:#e6edf3; white-space:pre; font-family:'JetBrains Mono','Fira Code','Courier New',monospace; }
+.concept-block { background:#161b22; border:1px solid #30363d; border-radius:8px; padding:16px 20px; }
+.concept-ttl { font-size:13px; font-weight:700; color:#58a6ff; margin-bottom:12px; font-family:sans-serif; }
+.concept-body { font-size:12.5px; line-height:1.7; color:#c9d1d9; white-space:pre-wrap; font-family:'JetBrains Mono','Fira Code',monospace; }
+.concept-body strong { color:#f0f6fc; }
+.tip-block { background:rgba(35,134,54,.08); border:1px solid rgba(35,134,54,.3); border-radius:8px; padding:14px 18px; }
+.tip-ttl { font-size:13px; font-weight:700; color:#3fb950; margin-bottom:8px; font-family:sans-serif; }
+.tip-body { font-size:12.5px; line-height:1.7; color:#7ee787; white-space:pre-wrap; font-family:'JetBrains Mono','Fira Code',monospace; }
+.checklist-block { background:#161b22; border:1px solid #30363d; border-radius:8px; padding:16px; }
+.check-item { display:flex; align-items:center; gap:12px; padding:8px 10px; border-radius:6px; cursor:pointer; margin-bottom:4px; transition:background .15s; user-select:none; }
+.check-item:hover { background:rgba(255,255,255,.03); }
+.check-item.done { background:rgba(35,134,54,.1); }
+.check-box { width:18px; height:18px; border-radius:4px; border:2px solid #30363d; background:transparent; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all .15s; font-size:11px; color:#fff; }
+.check-box.ck { background:#238636; border-color:#238636; }
+.check-lbl { font-size:13px; color:#c9d1d9; font-family:sans-serif; line-height:1.4; }
+.check-lbl.done { color:#8b949e; text-decoration:line-through; }
+.check-prog { margin-top:12px; font-size:12px; color:#8b949e; font-family:sans-serif; text-align:right; }
+.nav-footer { display:flex; justify-content:space-between; margin-top:8px; padding-top:20px; border-top:1px solid #21262d; }
+.btn-nav { padding:8px 16px; border-radius:6px; cursor:pointer; font-size:13px; font-family:sans-serif; transition:all .15s; }
+.btn-prev { background:transparent; border:1px solid #30363d; color:#8b949e; }
+.btn-prev:hover { border-color:#8b949e; color:#c9d1d9; }
+.btn-next { background:#238636; border:none; color:#fff; font-weight:700; }
+.btn-next:hover { background:#2ea043; }
+</style>
+</head>
+<body>
+<div id="header">
+  <span style="font-size:26px">⚡</span>
+  <div><h1>Ansible для Middle+</h1><p>DevOps Engineering Guide • 11 тем</p></div>
+</div>
+<div id="body">
+  <div id="sidebar"></div>
+  <div id="main"><div id="content"></div></div>
+</div>
+<script>
+const T=[
+  {id:"arch",icon:"⚙️",title:"Архитектура Ansible",sub:"Как это всё работает под капотом",blocks:[
+    {t:"concept",title:"Ключевые компоненты",body:"Ansible — это агентless инструмент автоматизации. Никаких демонов на хостах.\n\n**Control Node** — твоя машина, откуда запускаешь Ansible.\n**Managed Nodes** — серверы, которыми управляешь (нужен только SSH + Python).\n**Inventory** — список хостов.\n**Playbook** — YAML-файл с задачами.\n**Module** — атомарная единица работы (copy, apt, service...).\n**Role** — переиспользуемая структура из tasks, vars, handlers.\n**Fact** — данные о хосте, собираемые автоматически (gather_facts)."},
+    {t:"code",title:"Как Ansible выполняет задачу",body:"1. Читает Playbook + Inventory\n2. Коннектится по SSH к managed node\n3. Копирует Python-модуль во временную директорию\n4. Запускает его\n5. Удаляет временные файлы\n6. Возвращает JSON с результатом\n\n→ Всё это происходит параллельно для всех хостов (forks=5 по умолчанию)"},
+  ]},
+  {id:"inventory",icon:"📋",title:"Inventory: продвинутый уровень",sub:"Статика, динамика, группы групп",blocks:[
+    {t:"code",title:"Статический inventory (INI → YAML)",body:"# inventory/hosts.yml\nall:\n  vars:\n    ansible_user: ubuntu\n    ansible_ssh_private_key_file: ~/.ssh/id_rsa\n\n  children:\n    webservers:\n      hosts:\n        web01:\n          ansible_host: 10.0.1.10\n          nginx_port: 80\n        web02:\n          ansible_host: 10.0.1.11\n          nginx_port: 8080\n      vars:\n        app_env: production\n\n    databases:\n      hosts:\n        db01:\n          ansible_host: 10.0.2.10\n          pg_version: 15\n\n    # Группа из групп!\n    backend:\n      children:\n        webservers:\n        databases:"},
+    {t:"code",title:"Динамический inventory (AWS пример)",body:"# inventory/aws_ec2.yml\nplugin: amazon.aws.aws_ec2\nregions:\n  - eu-west-1\nfilters:\n  tag:Environment: production\n  instance-state-name: running\nkeyed_groups:\n  - key: tags.Role\n    prefix: role\n  - key: placement.availability_zone\n    prefix: az\nhostnames:\n  - private-ip-address\n\n# Запуск:\nansible-inventory -i inventory/aws_ec2.yml --list\nansible-playbook -i inventory/aws_ec2.yml site.yml"},
+    {t:"tip",title:"💡 Middle+ паттерн",body:"Используй --limit и --tags при деплое в продакшн:\n\nansible-playbook site.yml \\\n  --limit webservers \\\n  --tags \"deploy,restart\" \\\n  --extra-vars \"version=2.1.4\" \\\n  --check  # dry-run сначала!"},
+  ]},
+  {id:"playbooks",icon:"📝",title:"Playbooks & Tasks",sub:"Идиомы, которые отличают джуна от мидла",blocks:[
+    {t:"code",title:"Структура production playbook",body:'---\n- name: Deploy web application\n  hosts: webservers\n  become: yes\n  serial: "30%"          # Rolling update — 30% хостов за раз\n  max_fail_percentage: 10 # Если >10% упало — стоп\n  \n  pre_tasks:\n    - name: Notify monitoring - start deploy\n      uri:\n        url: "{{ monitoring_url }}/deploy/start"\n        method: POST\n      delegate_to: localhost  # Запускается на control node!\n\n  roles:\n    - role: common\n    - role: nginx\n      vars:\n        nginx_worker_processes: auto\n\n  post_tasks:\n    - name: Verify application is up\n      uri:\n        url: "http://{{ inventory_hostname }}/health"\n        status_code: 200\n      retries: 5\n      delay: 10\n\n  handlers:\n    - name: reload nginx\n      service:\n        name: nginx\n        state: reloaded'},
+    {t:"code",title:"Conditions, loops, errors",body:'# Условия\n- name: Install specific package on Debian\n  apt:\n    name: "{{ item }}"\n    state: present\n  loop: "{{ packages }}"\n  when:\n    - ansible_os_family == "Debian"\n    - ansible_distribution_major_version | int >= 20\n\n# Loop с dict\n- name: Create users\n  user:\n    name: "{{ item.name }}"\n    groups: "{{ item.groups | join(\',\') }}"\n    shell: "{{ item.shell | default(\'/bin/bash\') }}"\n  loop: "{{ app_users }}"\n  loop_control:\n    label: "{{ item.name }}"  # Чистый вывод\n\n# Обработка ошибок\n- name: Run migration (may fail if already done)\n  command: /app/migrate.sh\n  register: migration_result\n  failed_when:\n    - migration_result.rc != 0\n    - "\'already migrated\' not in migration_result.stdout"\n  changed_when: migration_result.rc == 0'},
+  ]},
+  {id:"roles",icon:"🏗️",title:"Roles: правильная структура",sub:"Как пишут роли в реальных компаниях",blocks:[
+    {t:"code",title:"Стандартная структура роли",body:"roles/\n└── nginx/\n    ├── defaults/\n    │   └── main.yml      # Дефолтные переменные (low priority)\n    ├── vars/\n    │   └── main.yml      # Переменные роли (high priority)\n    ├── tasks/\n    │   ├── main.yml      # Точка входа\n    │   ├── install.yml   # Разбивай на файлы!\n    │   └── configure.yml\n    ├── handlers/\n    │   └── main.yml\n    ├── templates/\n    │   └── nginx.conf.j2\n    ├── files/\n    │   └── logrotate.conf\n    ├── meta/\n    │   └── main.yml      # Зависимости роли\n    └── README.md         # Обязательно!"},
+    {t:"code",title:"meta/main.yml — зависимости",body:'# roles/app/meta/main.yml\ngalaxy_info:\n  role_name: app\n  author: yourteam\n  min_ansible_version: "2.14"\n\ndependencies:\n  - role: common\n  - role: nginx\n    vars:\n      nginx_port: 8080\n  - role: geerlingguy.postgresql\n    vars:\n      postgresql_version: 15'},
+    {t:"code",title:"tasks/main.yml — правильный include",body:'---\n# include_tasks для динамики, import_tasks для статики\n\n- name: Include OS-specific variables\n  include_vars: "{{ ansible_os_family }}.yml"\n\n- import_tasks: install.yml\n  tags: install\n\n- import_tasks: configure.yml\n  tags: configure\n\n- import_tasks: service.yml\n  tags: service'},
+  ]},
+  {id:"variables",icon:"🔧",title:"Переменные и приоритеты",sub:"Самая частая причина багов в Ansible",blocks:[
+    {t:"concept",title:"Приоритет переменных (от низкого к высокому)",body:'1.  role defaults          (roles/x/defaults/main.yml)\n2.  inventory vars         (group_vars/all)\n3.  inventory group_vars   (group_vars/webservers)\n4.  inventory host_vars    (host_vars/web01)\n5.  play vars              (vars: в playbook)\n6.  role vars              (roles/x/vars/main.yml)\n7.  set_fact / registered  \n8.  extra vars             (-e "key=value")  ← НАИВЫСШИЙ\n\n⚠️ Правило: defaults — для переопределения,\n   vars — для констант роли.'},
+    {t:"code",title:"group_vars структура",body:"inventory/\n├── hosts.yml\n├── group_vars/\n│   ├── all/\n│   │   ├── main.yml      # Общие переменные\n│   │   └── vault.yml     # Зашифрованные секреты!\n│   ├── webservers/\n│   │   └── main.yml\n│   └── production/\n│       └── main.yml\n└── host_vars/\n    └── web01/\n        └── main.yml"},
+    {t:"code",title:"Ansible Vault — секреты",body:'# Зашифровать файл\nansible-vault encrypt group_vars/all/vault.yml\n\n# Создать зашифрованный файл сразу\nansible-vault create group_vars/production/secrets.yml\n\n# Содержимое vault.yml:\n# vault_db_password: "super_secret_123"\n# vault_api_key: "abcdef..."\n\n# В main.yml используем:\n# db_password: "{{ vault_db_password }}"\n\n# Запуск с паролем из файла (для CI/CD)\nansible-playbook site.yml --vault-password-file ~/.vault_pass\n\nexport ANSIBLE_VAULT_PASSWORD_FILE=~/.vault_pass'},
+  ]},
+  {id:"jinja2",icon:"🧩",title:"Jinja2 Templates",sub:"Мощь шаблонизатора в конфигах",blocks:[
+    {t:"code",title:"templates/nginx.conf.j2",body:"upstream {{ app_name }}_backend {\n  {% for host in groups['webservers'] %}\n  server {{ hostvars[host]['ansible_host'] }}:{{ app_port }} weight={{ hostvars[host]['weight'] | default(1) }};\n  {% endfor %}\n  keepalive 32;\n}\n\nserver {\n  listen {{ nginx_port | default(80) }};\n  server_name {{ server_name | join(' ') }};\n\n  {% if ssl_enabled | bool %}\n  ssl_certificate     {{ ssl_cert_path }};\n  ssl_certificate_key {{ ssl_key_path }};\n  {% endif %}\n\n  location / {\n    proxy_pass http://{{ app_name }}_backend;\n    proxy_set_header X-Real-IP $remote_addr;\n    {% for header, value in custom_headers.items() %}\n    add_header {{ header }} \"{{ value }}\";\n    {% endfor %}\n  }\n}"},
+    {t:"code",title:"Полезные Jinja2 фильтры",body:"# Строки\n\"{{ app_name | upper }}\"                    # APP_NAME\n\"{{ path | basename }}\"                     # file.txt\n\"{{ url | urlsplit('hostname') }}\"          # example.com\n\n# Числа и логика\n\"{{ memory_mb | int * 0.75 | int }}\"       # 75% от памяти\n\"{{ value | default('fallback', true) }}\"  # fallback если пустое\n\n# Списки\n\"{{ packages | join(', ') }}\"\n\"{{ users | selectattr('active') | list }}\"\n\"{{ items | map(attribute='name') | list }}\"\n\n# JSON / dict\n\"{{ config | to_json }}\"\n\"{{ config | to_nice_yaml }}\"\n\n# Комбинирование\n\"{{ groups['webservers'] | map('extract', hostvars, 'ansible_host') | list }}\""},
+  ]},
+  {id:"handlers",icon:"🔔",title:"Handlers & Notify",sub:"Идемпотентные перезапуски сервисов",blocks:[
+    {t:"code",title:"Правильные handlers",body:"# tasks/configure.yml\n- name: Update nginx config\n  template:\n    src: nginx.conf.j2\n    dest: /etc/nginx/nginx.conf\n    validate: nginx -t -c %s  # Валидация перед записью!\n  notify:\n    - reload nginx\n    - clear app cache\n\n# handlers/main.yml\n- name: reload nginx\n  service:\n    name: nginx\n    state: reloaded\n\n- name: restart nginx\n  service:\n    name: nginx\n    state: restarted\n  listen: reload nginx  # Слушает другой notify!\n\n- name: clear app cache\n  command: /app/clear_cache.sh\n  \n# Принудительный запуск handlers прямо сейчас:\n- meta: flush_handlers"},
+    {t:"tip",title:"💡 Важно знать",body:"Handlers выполняются ОДИН РАЗ в конце play, даже если notify сработал 10 раз. Это и есть идемпотентность.\n\nЕсли нужно запустить handler посередине play — используй meta: flush_handlers.\n\nHandlers НЕ выполняются если play завершился с ошибкой. Используй --force-handlers если нужно."},
+  ]},
+  {id:"advanced",icon:"🚀",title:"Advanced: блоки, async, delegate",sub:"Паттерны для сложных сценариев",blocks:[
+    {t:"code",title:"Blocks — группировка и обработка ошибок",body:'- name: Deploy with rollback\n  block:\n    - name: Stop old version\n      service:\n        name: myapp\n        state: stopped\n\n    - name: Deploy new version\n      unarchive:\n        src: "app-{{ version }}.tar.gz"\n        dest: /opt/app\n        remote_src: yes\n\n    - name: Start new version\n      service:\n        name: myapp\n        state: started\n\n  rescue:\n    - name: Rollback to previous version\n      command: /opt/app/rollback.sh\n\n    - name: Alert team\n      slack:\n        token: "{{ slack_token }}"\n        msg: "Deploy failed on {{ inventory_hostname }}!"\n\n  always:\n    - name: Remove deploy lock\n      file:\n        path: /var/lock/deploy.lock\n        state: absent'},
+    {t:"code",title:"Async задачи и delegate_to",body:'# Async — для долгих операций\n- name: Run long backup\n  command: /backup/full_backup.sh\n  async: 3600   # Максимум 1 час\n  poll: 0       # Не жди, запусти и иди дальше\n  register: backup_job\n\n- name: Wait for backup to complete\n  async_status:\n    jid: "{{ backup_job.ansible_job_id }}"\n  register: result\n  until: result.finished\n  retries: 60\n  delay: 60\n\n# delegate_to — запуск задачи на другом хосте\n- name: Remove from load balancer\n  haproxy:\n    state: disabled\n    host: "{{ inventory_hostname }}"\n    backend: myapp\n  delegate_to: loadbalancer\n\n- name: Send deploy notification\n  uri:\n    url: "{{ webhook_url }}"\n    method: POST\n  delegate_to: localhost\n  run_once: true'},
+  ]},
+  {id:"cicd",icon:"🔄",title:"CI/CD интеграция",sub:"Ansible в реальном пайплайне",blocks:[
+    {t:"code",title:"ansible.cfg — конфиг проекта",body:"[defaults]\ninventory          = inventory/\nroles_path         = roles/:~/.ansible/roles\ncollections_paths  = collections/\nremote_user        = ansible\nprivate_key_file   = ~/.ssh/ansible_key\nhost_key_checking  = False\nretry_files_enabled = False\nstdout_callback    = yaml\ncallbacks_enabled  = profile_tasks\nforks              = 20\n\n[ssh_connection]\nssh_args = -o ControlMaster=auto -o ControlPersist=30m\npipelining = True\n\n[privilege_escalation]\nbecome      = True\nbecome_method = sudo"},
+    {t:"code",title:"GitLab CI пример",body:'# .gitlab-ci.yml\nstages:\n  - lint\n  - test\n  - deploy-staging\n  - deploy-production\n\nlint:\n  stage: lint\n  image: cytopia/ansible-lint\n  script:\n    - ansible-lint site.yml\n\nmolecule-test:\n  stage: test\n  image: quay.io/ansible/creator-ee\n  script:\n    - cd roles/nginx && molecule test\n\ndeploy-staging:\n  stage: deploy-staging\n  before_script:\n    - echo "$VAULT_PASS" > ~/.vault_pass\n    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa\n    - chmod 600 ~/.ssh/id_rsa\n  script:\n    - ansible-playbook site.yml\n        -i inventory/staging/\n        --vault-password-file ~/.vault_pass\n        --extra-vars "app_version=$CI_COMMIT_TAG"\n  only:\n    - develop\n\ndeploy-production:\n  extends: deploy-staging\n  script:\n    - ansible-playbook site.yml\n        -i inventory/production/\n        --vault-password-file ~/.vault_pass\n        --diff\n  when: manual\n  only:\n    - tags'},
+  ]},
+  {id:"testing",icon:"🧪",title:"Тестирование: Molecule",sub:"Как тестируют роли профессионалы",blocks:[
+    {t:"code",title:"Molecule — структура",body:"roles/nginx/\n└── molecule/\n    └── default/\n        ├── molecule.yml      # Конфиг теста\n        ├── converge.yml      # Playbook для теста\n        ├── verify.yml        # Проверки после применения\n        └── prepare.yml       # Подготовка окружения"},
+    {t:"code",title:"molecule.yml",body:"---\ndependency:\n  name: galaxy\n\ndriver:\n  name: docker\n\nplatforms:\n  - name: ubuntu-22\n    image: geerlingguy/docker-ubuntu2204-ansible\n    pre_build_image: true\n  - name: rocky-9\n    image: geerlingguy/docker-rockylinux9-ansible\n    pre_build_image: true\n\nprovisioner:\n  name: ansible\n\nverifier:\n  name: ansible"},
+    {t:"code",title:"verify.yml — проверки",body:"---\n- name: Verify nginx role\n  hosts: all\n  gather_facts: false\n  tasks:\n    - name: Check nginx is running\n      service_facts:\n      register: services\n      \n    - assert:\n        that:\n          - \"'nginx' in services.ansible_facts.services\"\n          - \"services.ansible_facts.services.nginx.state == 'running'\"\n\n    - name: Check nginx responds on port 80\n      uri:\n        url: \"http://localhost:80\"\n        status_code: 200\n      retries: 3\n      delay: 5"},
+  ]},
+  {id:"checklist",icon:"✅",title:"Middle+ чеклист",sub:"Что должен уметь настоящий мидл",blocks:[
+    {t:"checklist",items:[
+      "Понимаю приоритеты переменных и никогда не путаюсь",
+      "Пишу идемпотентные playbooks (повторный запуск = no changes)",
+      "Использую Ansible Vault для всех секретов",
+      "Организую код через roles с правильной структурой",
+      "Умею делать rolling updates (serial, max_fail_percentage)",
+      "Знаю delegate_to и run_once",
+      "Использую block/rescue/always для обработки ошибок",
+      "Пишу templates на Jinja2 (фильтры, условия, циклы)",
+      "Умею работать с динамическим inventory",
+      "Тестирую роли через Molecule",
+      "Интегрирую Ansible в CI/CD пайплайн",
+      "Использую --check и --diff перед prod деплоем",
+      "Настраиваю ansible.cfg под проект",
+      "Пишу async tasks для долгих операций",
+      "Понимаю разницу import_tasks vs include_tasks",
+    ]}
+  ]},
+];
+
+let active="arch";
+const checked={};
+
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+function renderSidebar(){
+  document.getElementById("sidebar").innerHTML=T.map(t=>`
+    <button class="nav-btn${t.id===active?" active":""}" onclick="nav('${t.id}')">
+      <span class="nav-icon">${t.icon}</span>
+      <span class="nav-label">${t.title}</span>
+    </button>`).join("");
+}
+
+function renderContent(){
+  const topic=T.find(t=>t.id===active);
+  const idx=T.findIndex(t=>t.id===active);
+  let h=`<div class="t-head">
+    <div class="t-row"><span class="t-icon">${topic.icon}</span>
+    <div><div class="t-title">${topic.title}</div><div class="t-sub">${topic.sub}</div></div></div>
+    <div class="divider"></div></div>`;
+
+  topic.blocks.forEach((b,bi)=>{
+    const key=`${topic.id}-${bi}`;
+    if(b.t==="code"){
+      h+=`<div class="block"><div class="code-block">
+        <div class="code-hdr"><span class="code-ttl">${b.title}</span>
+          <button class="copy-btn" id="cb-${key}" onclick="copyCode('${key}')">Копировать</button></div>
+        <pre class="code-body" id="pre-${key}">${esc(b.body)}</pre></div></div>`;
+    } else if(b.t==="concept"){
+      const body=esc(b.body).replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>");
+      h+=`<div class="block"><div class="concept-block">
+        <div class="concept-ttl">${b.title}</div>
+        <div class="concept-body">${body}</div></div></div>`;
+    } else if(b.t==="tip"){
+      h+=`<div class="block"><div class="tip-block">
+        <div class="tip-ttl">${b.title}</div>
+        <div class="tip-body">${esc(b.body)}</div></div></div>`;
+    } else if(b.t==="checklist"){
+      const total=b.items.length;
+      const done=b.items.filter((_,ii)=>checked[`${topic.id}-${ii}`]).length;
+      h+=`<div class="block"><div class="checklist-block">`;
+      b.items.forEach((item,ii)=>{
+        const ck=checked[`${topic.id}-${ii}`];
+        h+=`<div class="check-item${ck?" done":""}" onclick="toggleCk('${topic.id}',${ii})">
+          <div class="check-box${ck?" ck":""}">${ck?"✓":""}</div>
+          <span class="check-lbl${ck?" done":""}">${esc(item)}</span></div>`;
+      });
+      h+=`<div class="check-prog">${done} / ${total} выполнено</div></div></div>`;
+    }
+  });
+
+  h+=`<div class="nav-footer">`;
+  h+=idx>0?`<button class="btn-nav btn-prev" onclick="nav('${T[idx-1].id}')">← Назад</button>`:`<span></span>`;
+  h+=idx<T.length-1?`<button class="btn-nav btn-next" onclick="nav('${T[idx+1].id}')">Следующая тема →</button>`:`<span></span>`;
+  h+=`</div>`;
+
+  document.getElementById("content").innerHTML=h;
+  document.getElementById("main").scrollTop=0;
+}
+
+function nav(id){active=id;renderSidebar();renderContent();}
+
+function copyCode(key){
+  const pre=document.getElementById("pre-"+key);
+  const btn=document.getElementById("cb-"+key);
+  navigator.clipboard.writeText(pre.innerText).then(()=>{
+    btn.textContent="✓ Скопировано";btn.classList.add("copied");
+    setTimeout(()=>{btn.textContent="Копировать";btn.classList.remove("copied");},2000);
+  });
+}
+
+function toggleCk(tid,ii){checked[`${tid}-${ii}`]=!checked[`${tid}-${ii}`];renderContent();}
+
+renderSidebar();renderContent();
+</script>
+</body>
+</html>
