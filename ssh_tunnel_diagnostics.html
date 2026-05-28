@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Диагностика SSH туннеля</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Unbounded:wght@400;600;800&display=swap');
+
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d4a;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --accent3: #10b981;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --text: #e2e8f0;
+    --text-dim: #64748b;
+    --text-mid: #94a3b8;
+    --mono: 'JetBrains Mono', monospace;
+    --head: 'Unbounded', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* Header */
+  .site-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 48px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+    box-shadow: 0 0 24px rgba(0,212,255,0.3);
+  }
+
+  .site-title {
+    font-family: var(--head);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .site-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  /* TOC */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 40px;
+  }
+
+  .toc-title {
+    font-family: var(--head);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .toc-list {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .toc-list a {
+    display: inline-block;
+    padding: 5px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-mid);
+    text-decoration: none;
+    font-size: 12px;
+    transition: all 0.2s;
+  }
+
+  .toc-list a:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,212,255,0.05);
+  }
+
+  /* Sections */
+  .section {
+    margin-bottom: 48px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .section-num {
+    font-family: var(--head);
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--accent);
+    background: rgba(0,212,255,0.08);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 6px;
+    padding: 3px 10px;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
+
+  h2 {
+    font-family: var(--head);
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  h3 {
+    font-family: var(--head);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 28px 0 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  h3::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  p {
+    color: var(--text-mid);
+    margin-bottom: 12px;
+  }
+
+  /* Step cards */
+  .step-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    transition: border-color 0.2s;
+  }
+
+  .step-card:hover {
+    border-color: rgba(0,212,255,0.3);
+  }
+
+  .step-card-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    background: var(--surface2);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .step-badge {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--head);
+    font-size: 12px;
+    font-weight: 800;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .step-title {
+    font-family: var(--head);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .step-chevron {
+    color: var(--text-dim);
+    font-size: 16px;
+    transition: transform 0.25s;
+  }
+
+  .step-card.open .step-chevron { transform: rotate(180deg); }
+
+  .step-body {
+    padding: 0 20px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease, padding 0.2s;
+  }
+
+  .step-card.open .step-body {
+    max-height: 3000px;
+    padding: 20px;
+  }
+
+  /* Code blocks */
+  pre {
+    background: #070d1a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    margin: 12px 0;
+    position: relative;
+  }
+
+  pre code {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: #a8d8ea;
+    line-height: 1.6;
+  }
+
+  .copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:hover {
+    background: rgba(0,212,255,0.1);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* Comments in code */
+  .comment { color: #3d5a80; }
+  .cmd { color: #00d4ff; }
+  .flag { color: #7c3aed; }
+  .good { color: #10b981; }
+  .bad { color: #ef4444; }
+  .warn-text { color: #f59e0b; }
+
+  /* Tables */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 12px 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+  }
+
+  th {
+    background: var(--surface2);
+    color: var(--accent);
+    font-family: var(--head);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 10px 16px;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+    color: var(--text-mid);
+    vertical-align: top;
+    font-size: 13px;
+  }
+
+  tr:hover td {
+    background: rgba(0,212,255,0.03);
+  }
+
+  code {
+    background: rgba(0,212,255,0.08);
+    border: 1px solid rgba(0,212,255,0.15);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+  }
+
+  /* Callouts */
+  .callout {
+    border-left: 3px solid;
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+
+  .callout-info {
+    border-color: var(--accent);
+    background: rgba(0,212,255,0.05);
+    color: var(--text-mid);
+  }
+
+  .callout-success {
+    border-color: var(--accent3);
+    background: rgba(16,185,129,0.05);
+    color: var(--text-mid);
+  }
+
+  .callout-warn {
+    border-color: var(--warn);
+    background: rgba(245,158,11,0.05);
+    color: var(--text-mid);
+  }
+
+  .callout-danger {
+    border-color: var(--danger);
+    background: rgba(239,68,68,0.05);
+    color: var(--text-mid);
+  }
+
+  /* Summary section */
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .summary-item {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .summary-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .summary-num {
+    width: 24px;
+    height: 24px;
+    background: var(--danger);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--head);
+    font-size: 11px;
+    font-weight: 800;
+    color: white;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .summary-text strong {
+    color: var(--text);
+    display: block;
+    margin-bottom: 2px;
+    font-size: 13px;
+  }
+
+  .summary-text span {
+    color: var(--text-mid);
+    font-size: 12px;
+  }
+
+  .final-verdict {
+    background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(124,58,237,0.08));
+    border: 1px solid rgba(0,212,255,0.25);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--text-mid);
+    line-height: 1.7;
+  }
+
+  .final-verdict strong {
+    color: var(--accent);
+  }
+
+  /* Quick commands */
+  .cmd-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .cmd-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .cmd-item:hover {
+    border-color: rgba(0,212,255,0.4);
+    background: rgba(0,212,255,0.05);
+  }
+
+  .cmd-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+
+  .cmd-code {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+  }
+
+  .cmd-copy-hint {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-align: center;
+    margin-top: 8px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent2); }
+
+  @media (max-width: 600px) {
+    h2 { font-size: 15px; }
+    .cmd-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="logo-icon">🔐</div>
+    <div>
+      <div class="site-title">SSH Tunnel Diagnostics</div>
+      <div class="site-sub">Полный мануал по диагностике соединений</div>
+    </div>
+  </header>
+
+  <!-- TOC -->
+  <nav class="toc">
+    <div class="toc-title">Содержание</div>
+    <ul class="toc-list">
+      <li><a href="#theory">① Теория</a></li>
+      <li><a href="#diag">② Диагностика</a></li>
+      <li><a href="#table">③ Таблица симптомов</a></li>
+      <li><a href="#cheatsheet">④ Шпаргалка</a></li>
+      <li><a href="#summary">⑤ Итог</a></li>
+    </ul>
+  </nav>
+
+  <!-- PART 1 — Theory -->
+  <section class="section" id="theory">
+    <div class="section-header">
+      <span class="section-num">ЧАСТЬ 1</span>
+      <h2>Как работает SSH соединение</h2>
+    </div>
+
+    <h3>Этапы установки соединения</h3>
+    <pre><code><span class="comment">Клиент (сервер A)                    Сервер (сервер B)</span>
+      |                                      |
+      |-------- TCP SYN ------------------>  |   <span class="comment">1. TCP handshake</span>
+      |&lt;------- TCP SYN-ACK ---------------  |
+      |-------- TCP ACK ------------------>  |
+      |                                      |
+      |&lt;------- Banner (43 байта) ---------- |   <span class="comment">2. Banner exchange</span>
+      |-------- Banner (43 байта) -------->  |      <span class="warn-text">"SSH-2.0-OpenSSH_9.6p1"</span>
+      |                                      |
+      |-------- KEXINIT (1000-1500 байт) --> |   <span class="comment">3. Key exchange init</span>
+      |&lt;------- KEXINIT ------------------- |      <span class="comment">список алгоритмов</span>
+      |                                      |
+      |&lt;-------- KEX_ECDH_REPLY ----------- |   <span class="comment">4. Обмен ключами</span>
+      |-------> NEWKEYS ------------------>  |
+      |&lt;------- NEWKEYS ------------------- |
+      |                                      |
+      |-------> AUTH_REQUEST ------------->  |   <span class="comment">5. Аутентификация</span>
+      |&lt;------- AUTH_SUCCESS -------------- |
+      |                                      |
+      |======= <span class="good">Зашифрованный туннель</span> ======  |   <span class="comment">6. Туннель работает ✓</span></code></pre>
+
+    <h3>SSH Banner</h3>
+    <p>Первое что отправляет каждая сторона сразу после TCP соединения. Строка вида:</p>
+    <pre><code><span class="warn-text">SSH-2.0-OpenSSH_9.6p1 Ubuntu-3ubuntu13.16</span>
+<span class="comment">Размер: ~43 байта. Если banner не обменялся — соединение не пойдёт дальше.</span></code></pre>
+
+    <h3>KEXINIT (Key Exchange Init)</h3>
+    <p>Большой пакет (~1000-1500 байт) содержащий список алгоритмов шифрования, MAC и случайный cookie.</p>
+    <div class="callout callout-warn">
+      ⚠ Если KEXINIT не доходит — соединение зависает именно здесь. Самое частое место зависания при проблемах с MTU или фильтрацией.
+    </div>
+
+    <h3>Флаги TCP в tcpdump</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Флаг</th><th>Значение</th></tr>
+        <tr><td><code>[S]</code></td><td>SYN — инициация соединения</td></tr>
+        <tr><td><code>[S.]</code></td><td>SYN-ACK — подтверждение соединения</td></tr>
+        <tr><td><code>[.]</code></td><td>ACK — подтверждение получения данных</td></tr>
+        <tr><td><code>[P.]</code></td><td>PSH+ACK — отправка данных</td></tr>
+        <tr><td><code>[F.]</code></td><td>FIN — закрытие соединения</td></tr>
+        <tr><td><code>[R.]</code></td><td>RST — сброс соединения</td></tr>
+      </table>
+    </div>
+
+    <h3>seq и ack в tcpdump</h3>
+    <pre><code><span class="warn-text">IP A > B: Flags [P.], seq 1:44, ack 1, length 43</span>
+
+<span class="comment">seq 1:44  — A отправляет байты с 1 по 44 (т.е. 43 байта)</span>
+<span class="comment">ack 1     — A подтверждает что получил от B байты до позиции 1 (ещё ничего)</span>
+<span class="comment">length 43 — размер данных в пакете</span>
+
+<span class="comment">Если ack не меняется долго — сторона не получает данные от собеседника.</span></code></pre>
+
+    <h3>MTU и MSS</h3>
+    <div class="callout callout-info">
+      <strong>MTU</strong> — максимальный размер пакета на интерфейсе (обычно 1500 байт)<br>
+      <strong>MSS</strong> — максимальный размер TCP сегмента (обычно MTU - 40 = 1460 байт)<br><br>
+      Если где-то в сети меньший MTU — большие пакеты фрагментируются или отбрасываются. KEXINIT как раз большой пакет.
+    </div>
+  </section>
+
+  <!-- PART 2 — Diagnostics -->
+  <section class="section" id="diag">
+    <div class="section-header">
+      <span class="section-num">ЧАСТЬ 2</span>
+      <h2>Пошаговая диагностика</h2>
+    </div>
+
+    <!-- Step 1 -->
+    <div class="step-card open" onclick="toggleStep(this)">
+      <div class="step-card-header">
+        <div class="step-badge">1</div>
+        <div class="step-title">Проверить базовую доступность</div>
+        <div class="step-chevron">▾</div>
+      </div>
+      <div class="step-body">
+        <pre><button class="copy-btn" onclick="copyCode(this,event)">copy</button><code><span class="comment"># Пингуется ли сервер B с сервера A?</span>
+<span class="cmd">ping</span> <span class="flag">-c 3</span> &lt;IP_сервера_B&gt;
+
+<span class="comment"># Открыт ли порт SSH?</span>
+<span class="cmd">nc</span> <span class="flag">-zv</span> &lt;IP_сервера_B&gt; &lt;порт&gt;
+
+<span class="comment"># Трассировка маршрута</span>
+<span class="cmd">traceroute</span> &lt;IP_сервера_B&gt;</code></pre>
+        <div class="callout callout-info">
+          Если <code>nc</code> говорит <strong>Connection refused</strong> — порт закрыт или sshd не слушает<br>
+          Если <code>nc</code> говорит <strong>succeeded</strong> — порт открыт, идём дальше
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-card-header">
+        <div class="step-badge">2</div>
+        <div class="step-title">Проверить что sshd слушает нужный порт</div>
+        <div class="step-chevron">▾</div>
+      </div>
+      <div class="step-body">
+        <pre><button class="copy-btn" onclick="copyCode(this,event)">copy</button><code><span class="comment"># На сервере B</span>
+<span class="cmd">sudo ss</span> <span class="flag">-tlnp</span> | grep ssh
+<span class="cmd">sudo ss</span> <span class="flag">-tlnp</span> | grep &lt;порт&gt;</code></pre>
+        <div class="callout callout-success">
+          <span class="good">LISTEN 0  128  0.0.0.0:22  ...  sshd</span> — хорошо
+        </div>
+        <div class="callout callout-danger">Если пусто — sshd не запущен или слушает другой порт.</div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-card-header">
+        <div class="step-badge">3</div>
+        <div class="step-title">Подключиться с verbose и смотреть где зависает</div>
+        <div class="step-chevron">▾</div>
+      </div>
+      <div class="step-body">
+        <pre><button class="copy-btn" onclick="copyCode(this,event)">copy</button><code><span class="cmd">ssh</span> <span class="flag">-v -p</span> &lt;порт&gt; user@&lt;IP&gt;</code></pre>
+        <div class="table-wrap">
+          <table>
+            <tr><th>Где зависло</th><th>Что значит</th></tr>
+            <tr><td><code>Connecting to...</code></td><td>Порт недоступен, файрвол</td></tr>
+            <tr><td><code>Connection established</code> затем тишина</td><td>Banner не получен от сервера</td></tr>
+            <tr><td><code>SSH2_MSG_KEXINIT sent</code></td><td>KEXINIT отправлен, ждём ответ — проблема MTU или фильтрация</td></tr>
+            <tr><td><code>Authentications that can continue: publickey</code></td><td>Ключ не принят</td></tr>
+            <tr><td><code class="good">Accepted publickey</code></td><td><span class="good">✓ Всё хорошо</span></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-card-header">
+        <div class="step-badge">4</div>
+        <div class="step-title">Смотреть трафик через tcpdump на обоих серверах</div>
+        <div class="step-chevron">▾</div>
+      </div>
+      <div class="step-body">
+        <pre><button class="copy-btn" onclick="copyCode(this,event)">copy</button><code><span class="comment"># На сервере A (клиент)</span>
+<span class="cmd">sudo tcpdump</span> <span class="flag">-i eth0</span> host &lt;IP_сервера_B&gt; <span class="flag">-n</span>
+
+<span class="comment"># На сервере B (сервер)</span>
+<span class="cmd">sudo tcpdump</span> <span class="flag">-i ens3</span> host &lt;IP_сервера_A&gt; <span class="flag">-n</span></code></pre>
+        <p>Нормальное соединение:</p>
+        <pre><code><span class="good">A > B: [S]           ← отправил SYN
+B > A: [S.]          ← получил SYN-ACK
+A > B: [.]           ← отправил ACK
+B > A: [P.] length 43  ← получил banner от B  ✓
+A > B: [P.] length 43  ← отправил banner
+B > A: [.] ack 44    ← B подтвердил banner    ✓
+A > B: [.] length 1148 ← отправил KEXINIT
+B > A: [.] ack 1192  ← B подтвердил KEXINIT  ✓
+B > A: [P.] length 1xxx ← получил KEXINIT от B ✓</span></code></pre>
+        <p>Признаки проблем:</p>
+        <pre><code><span class="bad"># Проблема 1 — banner не доходит до A
+A > B: [S]
+B > A: [S.]
+A > B: [.]
+# Дальше тишина
+
+# Проблема 2 — KEXINIT не доходит до B
+B > A: [P.] length 43   ← banner от B
+A > B: [P.] length 43   ← banner от A
+A > B: [.] length 1148  ← KEXINIT от A (большой пакет)
+B > A: [P.] length 43   ← B продолжает слать banner, KEXINIT не получил!</span></code></pre>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-card-header">
+        <div class="step-badge">5</div>
+        <div class="step-title">Проверить логи sshd на сервере B</div>
+        <div class="step-chevron">▾</div>
+      </div>
+      <div class="step-body">
+        <pre><button class="copy-btn" onclick="copyCode(this,event)">copy</button><code><span class="comment"># Смотреть в реальном времени</span>
+<span class="cmd">sudo journalctl</span> <span class="flag">-u ssh -f</span>
+
+<span class="comment"># Или auth.log</span>
+<span class="cmd">sudo tail -f</span> /var/log/auth.log</code></pre>
+        <div class="table-wrap">
+          <table>
+            <tr><th>Запись</th><th>Значение</th></tr>
+            <tr><td><code>Accepted publickey for user</code></td><td><span class="good">Успешный вход по ключу</span></td></tr>
+            <tr><td><code>banner exchange: invalid format</code></td><td>Подключается не SSH клиент (боты)</td></tr>
+            <tr><td><code>Connection closed by X port Y</code></td><td>Соединение закрыто до аутентификации</td></tr>
+            <tr><td><code>Failed password for user</code></td><td><span class="bad">Неверный пароль</span></td></tr>
+            <tr><td><code>Invalid user X</code></td><td><span class="bad">Пользователь не существует</span></td></tr>
+          </table>
+        </div>
+        <div class="callout callout-danger">
+          Если IP сервера A <strong>не появляется</strong> в логах — соединение обрывается до sshd (файрвол, fail2ban, hosts.deny).
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 6 -->
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-card-header">
+        <div class="step-badge">6</div>
+        <div class="step-title">Проверить файрвол и блокировщики</div>
+        <div class="step-chevron">▾</div>
+      </div>
+      <div class="step-body">
+        <pre><button class="copy-btn" onclick="copyCode(this,event)">copy</button><code><span class="comment"># UFW</span>
+<span class="cmd">sudo ufw</span> status verbose
+
+<span class="comment"># iptables — входящие</span>
+<span class="cmd">sudo iptables</span> <span class="flag">-L INPUT -n</span> --line-numbers
+
+<span class="comment"># iptables — исходящие</span>
+<span class="cmd">sudo iptables</span> <span class="flag">-L OUTPUT -n</span>
+
+<span class="comment"># NAT правила</span>
+<span class="cmd">sudo iptables</span> <span class="flag">-t nat -L -n</span>
+
+<span class="comment"># Mangle (TPROXY, изменение пакетов)</span>
+<span class="cmd">sudo iptables</span> <span class="flag">-t mangle -L -n</span>
+
+<span class="comment"># fail2ban</span>
+<span class="cmd">sudo fail2ban-client</span> status sshd
+
+<span class="comment"># hosts.deny</span>
+<span class="cmd">cat</span> /etc/hosts.deny</code></pre>
+      </div>
+    </div>
+
+    <!-- Step 7 -->
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-card-header">
+        <div class="step-badge">7</div>
+        <div class="step-title">Проверить проблему MTU</div>
+        <div class="step-chevron">▾</div>
+      </div>
+      <div class="step-body">
+        <pre><button class="copy-btn" onclick="copyCode(this,event)">copy</button><code><span class="comment"># Текущий MTU</span>
+<span class="cmd">ip link show</span> | grep mtu
+
+<span class="comment"># Временно уменьшить MTU</span>
+<span class="cmd">sudo ip link set</span> eth0 mtu 1200
+
+<span class="comment"># Ограничить MSS для SSH — на сервере B (исходящие)</span>
+<span class="cmd">sudo iptables</span> <span class="flag">-t mangle -A POSTROUTING -p tcp</span> --sport 22 <span class="flag">-j TCPMSS</span> --set-mss 1100
+
+<span class="comment"># На сервере A (исходящие к серверу B)</span>
+<span class="cmd">sudo iptables</span> <span class="flag">-t mangle -A OUTPUT -p tcp</span> --dport 22 <span class="flag">-j TCPMSS</span> --set-mss 1100</code></pre>
+      </div>
+    </div>
+
+    <!-- Step 8 -->
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-card-header">
+        <div class="step-badge">8</div>
+        <div class="step-title">Проверить проходимость трафика напрямую</div>
+        <div class="step-chevron">▾</div>
+      </div>
+      <div class="step-body">
+        <pre><button class="copy-btn" onclick="copyCode(this,event)">copy</button><code><span class="comment"># На сервере B — поднять listener</span>
+python3 -c "
+import socket
+s = socket.socket()
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+s.bind(('0.0.0.0', 9999))
+s.listen(1)
+print('waiting...')
+conn, addr = s.accept()
+print(f'connected from {addr}')
+data = conn.recv(4096)
+print(f'received {len(data)} bytes')
+conn.send(b'OK:' + data[:20])
+conn.close()
+"
+
+<span class="comment"># На сервере A — отправить данные</span>
+python3 -c "
+import socket
+s = socket.create_connection(('&lt;IP_сервера_B&gt;', 9999))
+s.send(b'HELLO' * 300)
+print('sent')
+resp = s.recv(1000)
+print('received:', resp)
+"</code></pre>
+        <div class="callout callout-warn">
+          ⚠ Если TCP не работает, а UDP работает — провайдер фильтрует TCP после handshake.<br>
+          <strong>Решение: WireGuard (работает по UDP).</strong>
+        </div>
+        <pre><button class="copy-btn" onclick="copyCode(this,event)">copy</button><code><span class="comment"># Тест UDP — на сервере B</span>
+python3 -c "
+import socket
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.bind(('0.0.0.0', 9999))
+data, addr = s.recvfrom(4096)
+print(f'received {len(data)} bytes from {addr}')
+"
+
+<span class="comment"># На сервере A</span>
+python3 -c "
+import socket
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.sendto(b'HELLO' * 300, ('&lt;IP_сервера_B&gt;', 9999))
+print('sent')
+"</code></pre>
+      </div>
+    </div>
+
+    <!-- Step 9 -->
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-card-header">
+        <div class="step-badge">9</div>
+        <div class="step-title">Проверить проблему с ключами</div>
+        <div class="step-chevron">▾</div>
+      </div>
+      <div class="step-body">
+        <pre><button class="copy-btn" onclick="copyCode(this,event)">copy</button><code><span class="comment"># Публичный ключ совпадает с приватным?</span>
+<span class="cmd">ssh-keygen</span> <span class="flag">-y -f</span> ~/.ssh/tunnel_key
+<span class="comment"># Вывод должен совпадать с authorized_keys на сервере B</span>
+
+<span class="comment"># Права на файлы (критично!)</span>
+<span class="cmd">ls -la</span> ~/.ssh/
+<span class="comment"># authorized_keys должен быть 600, папка .ssh — 700</span>
+
+<span class="comment"># Права на домашнюю папку</span>
+<span class="cmd">ls -la</span> /home/ | grep &lt;username&gt;</code></pre>
+        <div class="table-wrap">
+          <table>
+            <tr><th>Проблема</th><th>Симптом</th><th>Решение</th></tr>
+            <tr><td>Неверные права на <code>~/.ssh</code></td><td>Просит пароль</td><td><code>chmod 700 ~/.ssh</code></td></tr>
+            <tr><td>Неверные права на <code>authorized_keys</code></td><td>Просит пароль</td><td><code>chmod 600 ~/.ssh/authorized_keys</code></td></tr>
+            <tr><td>Папка принадлежит другому юзеру</td><td>Просит пароль</td><td><code>chown user:user /home/user</code></td></tr>
+            <tr><td>Публичный ключ не тот</td><td>Просит пароль</td><td>Пересоздать и скопировать</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 10 -->
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-card-header">
+        <div class="step-badge">10</div>
+        <div class="step-title">Socket activation (Ubuntu специфика)</div>
+        <div class="step-chevron">▾</div>
+      </div>
+      <div class="step-body">
+        <div class="callout callout-warn">
+          На новых Ubuntu sshd запускается через systemd socket. Добавление <code>Port</code> в sshd_config не поможет — нужно отключить socket activation.
+        </div>
+        <pre><button class="copy-btn" onclick="copyCode(this,event)">copy</button><code><span class="comment"># Проверить запущен ли через socket</span>
+<span class="cmd">systemctl status ssh</span> | grep TriggeredBy
+
+<span class="comment"># Если есть "TriggeredBy: ssh.socket" — отключить:</span>
+<span class="cmd">sudo systemctl disable</span> ssh.socket
+<span class="cmd">sudo systemctl stop</span> ssh.socket
+<span class="cmd">sudo systemctl restart</span> ssh.service
+
+<span class="comment"># Теперь sshd читает Port из sshd_config</span></code></pre>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- PART 3 — Symptoms table -->
+  <section class="section" id="table">
+    <div class="section-header">
+      <span class="section-num">ЧАСТЬ 3</span>
+      <h2>Таблица симптомов и причин</h2>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr>
+          <th>Симптом в -v</th>
+          <th>Симптом в tcpdump</th>
+          <th>Причина</th>
+          <th>Решение</th>
+        </tr>
+        <tr>
+          <td>Зависает на <code>Connecting</code></td>
+          <td>Нет пакетов</td>
+          <td>Порт закрыт</td>
+          <td>Открыть порт, проверить ufw</td>
+        </tr>
+        <tr>
+          <td>Зависает после <code>Connection established</code></td>
+          <td>[S][S.][.] затем тишина</td>
+          <td>Banner не доходит</td>
+          <td>Проблема MTU или фильтрация</td>
+        </tr>
+        <tr>
+          <td>Зависает на <code>KEXINIT sent</code></td>
+          <td>Banner обменялся, KEXINIT теряется</td>
+          <td>MTU, фильтрация больших пакетов</td>
+          <td>Уменьшить MSS, сменить порт</td>
+        </tr>
+        <tr>
+          <td>Просит пароль вместо ключа</td>
+          <td>Аутентификация идёт</td>
+          <td>Ключ не принят</td>
+          <td>Проверить права, authorized_keys</td>
+        </tr>
+        <tr>
+          <td><code>banner exchange: invalid format</code> в логах</td>
+          <td>—</td>
+          <td>Не SSH клиент</td>
+          <td>Норма (боты), игнорировать</td>
+        </tr>
+        <tr>
+          <td>IP клиента не появляется в логах</td>
+          <td>—</td>
+          <td>Заблокирован до sshd</td>
+          <td>fail2ban, hosts.deny, iptables</td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- PART 4 — Cheat sheet -->
+  <section class="section" id="cheatsheet">
+    <div class="section-header">
+      <span class="section-num">ЧАСТЬ 4</span>
+      <h2>Шпаргалка — быстрые команды</h2>
+    </div>
+    <p style="margin-bottom:12px;color:var(--text-dim);font-size:12px;">Нажмите на команду чтобы скопировать</p>
+    <div class="cmd-grid">
+      <div class="cmd-item" onclick="quickCopy('nc -zv <host> <port>', this)">
+        <div class="cmd-label">Проверить порт</div>
+        <div class="cmd-code">nc -zv &lt;host&gt; &lt;port&gt;</div>
+      </div>
+      <div class="cmd-item" onclick="quickCopy('ssh -vvv -p <port> user@host', this)">
+        <div class="cmd-label">Подключение с verbose</div>
+        <div class="cmd-code">ssh -vvv -p &lt;port&gt; user@host</div>
+      </div>
+      <div class="cmd-item" onclick="quickCopy('sudo tcpdump -i eth0 host <IP> -n', this)">
+        <div class="cmd-label">Трафик к хосту</div>
+        <div class="cmd-code">sudo tcpdump -i eth0 host &lt;IP&gt; -n</div>
+      </div>
+      <div class="cmd-item" onclick="quickCopy('sudo tcpdump -i any port <port> -n', this)">
+        <div class="cmd-label">Трафик на порту</div>
+        <div class="cmd-code">sudo tcpdump -i any port &lt;port&gt; -n</div>
+      </div>
+      <div class="cmd-item" onclick="quickCopy('sudo ss -tlnp', this)">
+        <div class="cmd-label">Открытые порты</div>
+        <div class="cmd-code">sudo ss -tlnp</div>
+      </div>
+      <div class="cmd-item" onclick="quickCopy('ip link show | grep mtu', this)">
+        <div class="cmd-label">Проверить MTU</div>
+        <div class="cmd-code">ip link show | grep mtu</div>
+      </div>
+      <div class="cmd-item" onclick="quickCopy('sudo journalctl -u ssh -f', this)">
+        <div class="cmd-label">Логи SSH</div>
+        <div class="cmd-code">sudo journalctl -u ssh -f</div>
+      </div>
+      <div class="cmd-item" onclick="quickCopy('sudo fail2ban-client status sshd', this)">
+        <div class="cmd-label">Заблокированные IP</div>
+        <div class="cmd-code">sudo fail2ban-client status sshd</div>
+      </div>
+      <div class="cmd-item" onclick="quickCopy('sudo iptables -L INPUT -n | grep DROP', this)">
+        <div class="cmd-label">Заблокированные в iptables</div>
+        <div class="cmd-code">sudo iptables -L INPUT -n | grep DROP</div>
+      </div>
+      <div class="cmd-item" onclick="quickCopy('ip route show && ip rule show', this)">
+        <div class="cmd-label">Маршрутизация</div>
+        <div class="cmd-code">ip route show &amp;&amp; ip rule show</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PART 5 — Summary -->
+  <section class="section" id="summary">
+    <div class="section-header">
+      <span class="section-num">ЧАСТЬ 5</span>
+      <h2>Итог диагностики</h2>
+    </div>
+    <div class="summary-card">
+      <div class="summary-item">
+        <div class="summary-num">1</div>
+        <div class="summary-text">
+          <strong>Неправильные права на /home/tunnel</strong>
+          <span>Папка принадлежала <code>vilyzo</code> вместо <code>tunnel</code></span>
+        </div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-num">2</div>
+        <div class="summary-text">
+          <strong>Socket activation на сервере B</strong>
+          <span>Порт 22 не добавлялся через sshd_config из-за systemd socket</span>
+        </div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-num">3</div>
+        <div class="summary-text">
+          <strong>Провайдер Beget блокирует исходящий TCP</strong>
+          <span>KEXINIT (~1000 байт) уходит с сервера A, но до sshd на сервере B не доходит</span>
+        </div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-num">4</div>
+        <div class="summary-text">
+          <strong>UDP работает</strong>
+          <span>Значит решение через WireGuard или reverse tunnel</span>
+        </div>
+      </div>
+      <div class="final-verdict">
+        <strong>Вывод:</strong> когда TCP данные после handshake не доходят но UDP работает — это блокировка на уровне провайдера. Решение: <strong>WireGuard туннель (UDP)</strong> или обращение в поддержку провайдера.
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  function toggleStep(card) {
+    card.classList.toggle('open');
+  }
+
+  function copyCode(btn, e) {
+    e.stopPropagation();
+    const pre = btn.parentElement;
+    const code = pre.querySelector('code').innerText;
+    navigator.clipboard.writeText(code).then(() => {
+      btn.textContent = 'copied!';
+      setTimeout(() => btn.textContent = 'copy', 1500);
+    });
+  }
+
+  function quickCopy(text, el) {
+    navigator.clipboard.writeText(text).then(() => {
+      const orig = el.querySelector('.cmd-label').textContent;
+      el.querySelector('.cmd-label').textContent = '✓ скопировано';
+      setTimeout(() => el.querySelector('.cmd-label').textContent = orig, 1500);
+    });
+  }
+</script>
+</body>
+</html>
