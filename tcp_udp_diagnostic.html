@@ -1,0 +1,252 @@
+[29.05.2026 03:13] Denis: <!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мануал: Диагностика TCP и UDP подключений</title>
+    <style>
+        :root {
+            --bg: #f8f9fa;
+            --text: #212529;
+            --accent: #0d6efd;
+            --code-bg: #2d2d2d;
+            --code-text: #e6e6e6;
+            --warning-bg: #fff3cd;
+            --warning-border: #ffc107;
+            --tip-bg: #d1e7dd;
+            --tip-border: #198754;
+            --table-border: #dee2e6;
+            --table-hover: #f1f3f5;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+            margin: 0;
+            padding: 2rem 1rem;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        h1, h2, h3 { margin-top: 1.5rem; }
+        h1 { border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.95rem;
+        }
+        th, td {
+            border: 1px solid var(--table-border);
+            padding: 0.75rem;            text-align: left;
+        }
+        th { background: #e9ecef; }
+        tr:hover { background: var(--table-hover); }
+        pre {
+            background: var(--code-bg);
+            color: var(--code-text);
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.9rem;
+        }
+        code {
+            background: #e9ecef;
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 0.9em;
+        }
+        pre code { background: none; padding: 0; }
+        .note, .warning, .tip {
+            padding: 1rem;
+            margin: 1rem 0;
+            border-left: 4px solid;
+            border-radius: 0 4px 4px 0;
+        }
+        .warning { background: var(--warning-bg); border-color: var(--warning-border); }
+        .tip { background: var(--tip-bg); border-color: var(--tip-border); }
+        .badge {
+            display: inline-block;
+            padding: 0.25em 0.5em;
+            font-size: 0.8em;
+            border-radius: 4px;
+            background: #6c757d;
+            color: #fff;
+        }
+        .badge-tcp { background: #0d6efd; }
+        .badge-udp { background: #198754; }
+        .badge-icmp { background: #dc3545; }
+        @media (max-width: 600px) {
+            .container { padding: 1rem; }
+            table { font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>📘 Мануал: Диагностика TCP и UDP подключений</h1>        <p>Полный справочник по проверке доступности сервисов, трассировке маршрутов и диагностике сетевых проблем с использованием стандартных и продвинутых утилит.</p>
+    </header>
+
+    <nav>
+        <p><strong>Оглавление:</strong>
+        <a href="#default-tools">1. Базовые утилиты (ping, traceroute, mtr)</a> |
+        <a href="#tcp">2. Проверка TCP</a> |
+        <a href="#udp">3. Проверка UDP</a> |
+        <a href="#windows">4. Windows-альтернативы</a> |
+        <a href="#checklist">5. Чеклист диагностики</a>
+        </p>
+    </nav>
+[29.05.2026 03:13] Denis: <section id="default-tools">
+        <h2>1. Базовые утилиты: какие протоколы они используют?</h2>
+        <table>
+            <thead>
+                <tr><th>Утилита</th><th>По умолчанию</th><th>Может использовать TCP?</th><th>Примечание</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>ping</code></td><td><span class="badge badge-icmp">ICMP Echo</span></td><td>❌ Нет (стандарт)</td><td>Работает на сетевом уровне. Не использует порты.</td></tr>
+                <tr><td><code>traceroute</code> (Linux)</td><td><span class="badge badge-udp">UDP 33434+</span></td><td>✅ Да (<code>-T</code> / <code>-P tcp</code>)</td><td>Windows <code>tracert</code> использует ICMP.</td></tr>
+                <tr><td><code>mtr</code></td><td><span class="badge badge-icmp">ICMP</span> / <span class="badge badge-udp">UDP</span></td><td>✅ Да (в некоторых форках)</td><td>Комбинирует ping + traceroute. IPv6 → ICMPv6.</td></tr>
+            </tbody>
+        </table>
+        <div class="warning">
+            <strong>⚠️ Почему не TCP по умолчанию?</strong><br>
+            TCP требует трёхэтапного рукопожатия, что добавляет задержку и может давать ложные результаты при закрытых портах. ICMP/UDP созданы именно для диагностики связности без установки сессии.
+        </div>
+    </section>
+
+    <section id="tcp">
+        <h2>2. Проверка TCP-подключений</h2>
+        <h3>🔹 Netcat (<code>nc</code>)</h3>
+        <pre><code># Быстрая проверка порта
+nc -vz example.com 443
+
+# С отправкой данных (HTTP-запрос)
+printf "HEAD / HTTP/1.1\r\nHost: example.com\r\n\r\n" | nc example.com 80</code></pre>
+
+        <h3>🔹 Telnet</h3>
+        <pre><code>telnet example.com 22
+# Успешное подключение → порт открыт
+# "Connection refused" → порт закрыт
+# Таймаут → возможная блокировка фаерволом</code></pre>
+
+        <h3>🔹 curl (для HTTP/HTTPS)</h3>
+        <pre><code>curl -v --connect-timeout 5 https://example.com:443
+# Вывод покажет этапы TCP handshake, TLS negotiation и ответ сервера</code></pre>
+        <h3>🔹 tcping (ICMP-альтернатива для портов)</h3>
+        <pre><code>tcping example.com 443
+# Работает как ping, но измеряет задержку до TCP-порта</code></pre>
+
+        <div class="tip">
+            <strong>💡 Совет:</strong> Если ICMP заблокирован, но сервис работает — используйте <code>nc -vz</code> или <code>tcping</code> вместо обычного пинга.
+        </div>
+    </section>
+
+    <section id="udp">
+        <h2>3. Проверка UDP-подключений</h2>
+        <div class="warning">
+            <strong>⚠️ Важно:</strong> UDP — протокол без установки соединения. «Успешная» отправка пакета не гарантирует доставку или обработку на стороне приложения.
+        </div>
+
+        <h3>🔹 Netcat (<code>nc -u</code>)</h3>
+        <pre><code># Клиент: отправить пакет
+echo "probe" | nc -u -w2 example.com 53
+
+# Сервер: слушать порт (на другой машине)
+nc -u -l -p 52000</code></pre>
+
+        <h3>🔹 nmap (сканирование UDP)</h3>
+        <pre><code># Конкретный порт
+nmap -sU -p 53,123,161 192.168.1.1
+
+# Статусы:
+# open         → порт отвечает
+# open|filtered → нет ответа (возможно, открыт или отфильтрован)
+# closed       → получен ICMP port unreachable</code></pre>
+
+        <h3>🔹 iperf3 (тест пропускной способности)</h3>
+        <pre><code># Сервер
+iperf3 -s
+
+# Клиент (UDP-тест)
+iperf3 -u -c 192.168.1.100 -b 10M -t 10</code></pre>
+
+        <h3>🔹 Продвинутая диагностика</h3>
+        <pre><code># nping (из пакета nmap)
+nping --udp -p 53 --data-string "test" 8.8.8.8
+
+# hping3
+hping3 --udp -p 123 -d 100 192.168.1.1
+
+# Мониторинг трафика (на принимающей стороне)
+sudo tcpdump -n udp port 52000</code></pre>
+    </section>
+
+    <section id="windows">        <h2>4. Windows-альтернативы</h2>
+        <table>
+            <thead>
+                <tr><th>Инструмент</th><th>Где взять</th><th>Примечание</th></tr>
+[29.05.2026 03:13] Denis: </thead>
+            <tbody>
+                <tr><td><code>Test-NetConnection</code></td><td>Встроен (PowerShell)</td><td><code>Test-NetConnection host -Port 443</code> (только TCP)</td></tr>
+                <tr><td><code>tcping.exe</code></td><td><a href="https://tcping.com/" target="_blank">tcping.com</a></td><td>Лёгкий аналог linux <code>tcping</code></td></tr>
+                <tr><td><code>ncat.exe</code></td><td><a href="https://nmap.org/download.html" target="_blank">Nmap for Windows</a></td><td>Полноценный netcat с поддержкой TLS, IPv6</td></tr>
+                <tr><td><code>PortQry</code></td><td>Microsoft Download Center</td><td>Официальная утилита для аудита портов</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section id="checklist">
+        <h2>5. Чеклист диагностики проблем</h2>
+        <pre><code># 1. Базовая связность
+ping example.com
+
+# 2. Маршрут
+traceroute example.com   # Linux
+tracert example.com      # Windows
+
+# 3. DNS
+nslookup example.com
+dig example.com
+
+# 4. TCP-порт
+nc -vz -w 3 example.com 443
+
+# 5. UDP-порт + мониторинг
+# На приёмнике:
+sudo tcpdump -n udp port 52000
+# На отправителе:
+echo "test" | nc -u -w1 example.com 52000</code></pre>
+
+        <div class="tip">
+            <strong>🔑 Ключевые параметры <code>nc</code>:</strong><br>
+            <code>-v</code> — подробный вывод | <code>-z</code> — режим сканирования | <code>-u</code> — UDP | <code>-w N</code> — таймаут (сек) | <code>-l</code> — прослушивание
+        </div>
+
+        <h3>Полезные комбинации</h3>
+        <pre><code># TCP: проверить 3 порта подряд
+for port in 80 443 8080; do
+  nc -vz -w2 example.com $port
+done
+
+# UDP: отправить пакет и ждать ответ 2 сек
+echo "probe" | nc -u -w2 example.com 123</code></pre>
+    </section>
+    <footer>
+        <hr>
+        <p><small>📅 Обновлено: май 2026 | 🛠️ Протоколы: ICMP / TCP / UDP | 💡 Для диагностики фаерволов используйте <code>tcpdump</code>, <code>firewall-cmd --list-all</code> или логи приложений.</small></p>
+    </footer>
+</div>
+</body>
+</html>
