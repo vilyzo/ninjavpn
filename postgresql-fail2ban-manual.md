@@ -8,13 +8,15 @@
 Интернет
    |
    ▼
-Хост:5432  ◄── fail2ban банит атакующих здесь
+Хост:5432  ◄── fail2ban банит атакующих здесь (цепочка DOCKER-USER)
    |
    ▼
 Docker-контейнер:5432 (PostgreSQL)
 ```
 
 > **Важно:** fail2ban устанавливается на хост, а не внутрь контейнера — только хост имеет доступ к iptables.
+
+> **Важно:** Правила должны добавляться в цепочку `DOCKER-USER`, а не `INPUT`. Docker форвардит трафик до того как он попадает в `INPUT`, поэтому стандартные правила fail2ban туда не дойдут.
 
 ---
 
@@ -164,7 +166,7 @@ logpath   = /var/log/postgresql-docker/postgresql.log
 maxretry  = 3
 findtime  = 300
 bantime   = -1
-action    = iptables-multiport[name=postgresql, port="5432", protocol=tcp]
+action    = iptables-multiport[name=postgresql, port="5432", protocol=tcp, chain="DOCKER-USER"]
 ```
 
 | Параметр | Описание |
@@ -172,6 +174,9 @@ action    = iptables-multiport[name=postgresql, port="5432", protocol=tcp]
 | `maxretry = 3` | Забанить после 3 неудачных попыток |
 | `findtime = 300` | Окно в 5 минут для подсчёта попыток |
 | `bantime = -1` | Перманентный бан (используйте `3600` для бана на 1 час) |
+| `chain = DOCKER-USER` | **Обязательно для Docker** — трафик к проброшенным портам не проходит через `INPUT` |
+
+> **Почему `DOCKER-USER`?** Docker форвардит входящие пакеты через цепочку `PREROUTING → DOCKER` напрямую в контейнер, минуя цепочку `INPUT`. Правила в `INPUT` никогда не увидят этот трафик. Цепочка `DOCKER-USER` специально предназначена для пользовательских правил и выполняется до форвардинга в контейнер.
 
 ---
 
@@ -184,8 +189,8 @@ sudo systemctl enable fail2ban
 # Проверить статус jail
 sudo fail2ban-client status postgresql-docker
 
-# Проверить забаненные IP в iptables
-sudo iptables -L f2b-postgresql -n --line-numbers
+# Проверить что правила добавлены в правильную цепочку
+sudo iptables -L DOCKER-USER -n --line-numbers
 ```
 
 Ожидаемый вывод `fail2ban-client status`:
@@ -200,6 +205,16 @@ Status for the jail: postgresql-docker
    |- Currently banned: 3
    |- Total banned:     3
    `- Banned IP list:   1.2.3.4 5.6.7.8 9.10.11.12
+```
+
+Ожидаемый вывод `iptables -L DOCKER-USER`:
+
+```
+Chain DOCKER-USER (1 references)
+num  target          prot opt source          destination
+1    f2b-postgresql  tcp  --  0.0.0.0/0       0.0.0.0/0    multiport dports 5432
+2    REJECT          tcp  --  1.2.3.4         0.0.0.0/0    multiport dports 5432
+...
 ```
 
 ---
@@ -254,6 +269,24 @@ sudo fail2ban-regex /tmp/pg_test.log /etc/fail2ban/filter.d/postgresql-docker.co
 
 > Если IP не появляется в строках FATAL — вернитесь к Шагу 1 и проверьте `log_line_prefix` в `postgresql.conf`.
 
+**IP забанены, но попытки всё равно доходят до PostgreSQL:**
+
+Правила добавлены в цепочку `INPUT` вместо `DOCKER-USER`. Проверить:
+
+```bash
+sudo iptables -L INPUT -n | grep postgresql    # здесь правил быть не должно
+sudo iptables -L DOCKER-USER -n | grep postgresql  # правила должны быть здесь
+```
+
+Если правила в `INPUT` — убедитесь что в `jail.d/postgresql-docker.conf` указан параметр `chain="DOCKER-USER"` в строке `action`, перезапустите fail2ban и перебаньте IP:
+
+```bash
+sudo fail2ban-client stop
+sudo fail2ban-client start
+sudo fail2ban-client set postgresql-docker unbanip <IP>
+sudo fail2ban-client set postgresql-docker banip <IP>
+```
+
 **Логи не пишутся в файл:**
 
 ```bash
@@ -279,7 +312,7 @@ sudo rm /etc/fail2ban/jail.d/postgresql.conf  # если существует л
 ├── filter.d/
 │   └── postgresql-docker.conf   # фильтр regex
 └── jail.d/
-    └── postgresql-docker.conf   # настройки jail
+    └── postgresql-docker.conf   # настройки jail (action с chain=DOCKER-USER)
 
 /etc/systemd/system/
 └── pg-docker-logs.service       # стриминг логов Docker → файл
@@ -298,7 +331,8 @@ sudo rm /etc/fail2ban/jail.d/postgresql.conf  # если существует л
 - [ ] Создать systemd-сервис `pg-docker-logs`
 - [ ] Создать `/etc/fail2ban/filter.d/postgresql-docker.conf`
 - [ ] Проверить фильтр: `fail2ban-regex /tmp/pg_test.log ...`
-- [ ] Создать `/etc/fail2ban/jail.d/postgresql-docker.conf`
+- [ ] Создать `/etc/fail2ban/jail.d/postgresql-docker.conf` с `chain="DOCKER-USER"` в `action`
 - [ ] Запустить: `sudo systemctl start fail2ban`
-- [ ] Проверить: `sudo fail2ban-client status postgresql-docker`
+- [ ] Проверить цепочку: `sudo iptables -L DOCKER-USER -n`
+- [ ] Проверить статус: `sudo fail2ban-client status postgresql-docker`
 - [ ] Сохранить правила iptables: `sudo netfilter-persistent save`
