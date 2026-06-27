@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ss -tin Analyzer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --surface-0: #f1f0e8;
+  --surface-1: #f7f6f0;
+  --surface-2: #ffffff;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #898781;
+  --border: rgba(11,11,11,0.10);
+  --border-strong: rgba(11,11,11,0.18);
+  --radius: 8px;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface-0: #111110;
+    --surface-1: #1a1a19;
+    --surface-2: #242423;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #898781;
+    --border: rgba(255,255,255,0.10);
+    --border-strong: rgba(255,255,255,0.18);
+  }
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--surface-0);
+  color: var(--text-primary);
+  min-height: 100vh;
+  padding: 2rem 1rem;
+}
+
+.container { max-width: 900px; margin: 0 auto; }
+
+h1 { font-size: 22px; font-weight: 500; margin-bottom: 6px; }
+.subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 1.5rem; }
+code { font-family: var(--font-mono); background: var(--surface-1); padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+
+textarea {
+  width: 100%;
+  height: 160px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--surface-2);
+  color: var(--text-primary);
+  border: 0.5px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  resize: vertical;
+  line-height: 1.5;
+}
+textarea::placeholder { color: var(--text-muted); }
+textarea:focus { outline: 2px solid #2a78d6; outline-offset: 1px; }
+
+.btn-row { margin-top: 10px; display: flex; gap: 8px; align-items: center; }
+button {
+  padding: 8px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  background: var(--surface-2);
+  color: var(--text-primary);
+  border: 0.5px solid var(--border-strong);
+  border-radius: var(--radius);
+  font-family: var(--font-sans);
+}
+button:hover { background: var(--surface-1); }
+button.primary {
+  background: #2a78d6;
+  color: #fff;
+  border-color: #2a78d6;
+}
+button.primary:hover { background: #185fa5; }
+
+.hint { font-size: 12px; color: var(--text-muted); }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 1.5rem; }
+.stat { background: var(--surface-1); border-radius: var(--radius); padding: 14px 16px; border: 0.5px solid var(--border); }
+.stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+.stat-value { font-size: 22px; font-weight: 500; }
+.stat-sub { font-size: 11px; color: var(--text-secondary); margin-top: 3px; }
+.stat.warn .stat-value { color: #e34948; }
+.stat.ok .stat-value { color: #1baf7a; }
+.stat.neutral .stat-value { color: var(--text-primary); }
+
+.charts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 1.5rem; }
+@media (max-width: 600px) { .charts { grid-template-columns: 1fr; } }
+
+.chart-card {
+  background: var(--surface-1);
+  border-radius: 12px;
+  border: 0.5px solid var(--border);
+  padding: 14px 16px;
+}
+.chart-card h3 { font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 10px; }
+.chart-wrap { position: relative; height: 180px; }
+
+.section { margin-top: 1.5rem; }
+.section h3 { font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px; }
+
+.table-wrap { overflow-x: auto; border-radius: 12px; border: 0.5px solid var(--border); background: var(--surface-1); }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { text-align: left; padding: 8px 10px; color: var(--text-muted); border-bottom: 0.5px solid var(--border); font-weight: 400; white-space: nowrap; }
+td { padding: 7px 10px; color: var(--text-primary); border-bottom: 0.5px solid var(--border); font-family: var(--font-mono); font-size: 12px; }
+tr:last-child td { border-bottom: none; }
+
+.badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 500; font-family: var(--font-sans); }
+.badge-red { background: #fcebeb; color: #a32d2d; }
+.badge-green { background: #eaf3de; color: #3b6d11; }
+.badge-amber { background: #faeeda; color: #854f0b; }
+
+@media (prefers-color-scheme: dark) {
+  .badge-red { background: #501313; color: #f09595; }
+  .badge-green { background: #173404; color: #97c459; }
+  .badge-amber { background: #412402; color: #ef9f27; }
+}
+
+.empty { color: var(--text-muted); font-size: 13px; padding: 2rem; text-align: center; }
+.error { color: #e34948; font-size: 13px; padding: 1rem 0; }
+
+#output { display: none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Анализатор ss -tin</h1>
+  <p class="subtitle">Вставьте вывод команды <code>sudo ss -tin</code> или <code>sudo ss -tin sport = :443</code></p>
+
+  <textarea id="input" placeholder="ESTAB 0 0 192.168.1.1:443 14.165.46.73:54321&#10;	 cubic rto:200 rtt:361/17 cwnd:8 ssthresh:7 rcv_space:14480 retrans:0/3 bytes_retrans:2380 ...&#10;ESTAB 0 0 192.168.1.1:443 14.165.46.74:12345&#10;	 cubic rto:628 rtt:336/2 cwnd:250 rcv_space:67040 ..."></textarea>
+
+  <div class="btn-row">
+    <button class="primary" onclick="analyze()">Анализировать</button>
+    <button onclick="clearAll()">Очистить</button>
+    <span class="hint" id="hint"></span>
+  </div>
+
+  <div id="output">
+    <div class="stats" id="statsGrid"></div>
+    <div class="charts">
+      <div class="chart-card"><h3>RTT (ms)</h3><div class="chart-wrap"><canvas id="rttChart" role="img" aria-label="Гистограмма RTT"></canvas></div></div>
+      <div class="chart-card"><h3>cwnd (сегменты)</h3><div class="chart-wrap"><canvas id="cwndChart" role="img" aria-label="Гистограмма cwnd"></canvas></div></div>
+      <div class="chart-card"><h3>rcv_space (KB)</h3><div class="chart-wrap"><canvas id="rcvChart" role="img" aria-label="Гистограмма rcv_space"></canvas></div></div>
+      <div class="chart-card"><h3>RTO (ms)</h3><div class="chart-wrap"><canvas id="rtoChart" role="img" aria-label="Гистограмма RTO"></canvas></div></div>
+    </div>
+    <div class="section">
+      <h3>Проблемные сессии (retrans > 0 или cwnd &lt; 10)</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Клиент</th><th>RTT ms</th><th>cwnd</th><th>ssthresh</th><th>rcv_space</th><th>retrans cur/total</th><th>статус</th></tr></thead>
+        <tbody id="problemRows"></tbody>
+      </table></div>
+    </div>
+    <div class="section">
+      <h3>Все сессии</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Клиент</th><th>RTT ms</th><th>jitter</th><th>cwnd</th><th>ssthresh</th><th>rcv_space</th><th>rto</th><th>retrans</th></tr></thead>
+        <tbody id="allRows"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let charts = {};
+
+function clearCharts() {
+  Object.values(charts).forEach(c => c.destroy());
+  charts = {};
+}
+
+function clearAll() {
+  document.getElementById('input').value = '';
+  document.getElementById('output').style.display = 'none';
+  document.getElementById('hint').textContent = '';
+  clearCharts();
+}
+
+function parseNum(str, key) {
+  const m = str.match(new RegExp(key + ':([\\d.]+)'));
+  return m ? parseFloat(m[1]) : null;
+}
+
+function parseRetrans(str) {
+  const m = str.match(/retrans:(\d+)\/(\d+)/);
+  return m ? { cur: parseInt(m[1]), total: parseInt(m[2]) } : null;
+}
+
+function makeBuckets(values, count) {
+  if (!values.length) return { labels: [], buckets: [] };
+  const min = Math.min(...values), max = Math.max(...values);
+  const step = (max - min) / count || 1;
+  const buckets = Array(count).fill(0);
+  const labels = Array(count).fill(0).map((_, i) => Math.round(min + i * step));
+  values.forEach(v => {
+    let idx = Math.floor((v - min) / step);
+    if (idx >= count) idx = count - 1;
+    buckets[idx]++;
+  });
+  return { labels, buckets };
+}
+
+function drawHist(id, values, color) {
+  if (!values.length) return;
+  const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+  const gridColor = isDark ? '#2c2c2a' : '#e1e0d9';
+  const labelColor = '#898781';
+  const { labels, buckets } = makeBuckets(values, Math.min(values.length, 10));
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id), {
+    type: 'bar',
+    data: { labels: labels.map(String), datasets: [{ data: buckets, backgroundColor: color, borderRadius: 4, borderSkipped: 'bottom' }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: labelColor, font: { size: 11 }, maxRotation: 0 }, grid: { color: gridColor } },
+        y: { ticks: { color: labelColor, font: { size: 11 } }, grid: { color: gridColor }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+function analyze() {
+  const raw = document.getElementById('input').value.trim();
+  if (!raw) return;
+
+  clearCharts();
+
+  const lines = raw.split('\n');
+  const sessions = [];
+  let cur = null;
+
+  for (let line of lines) {
+    const trimmed = line.trim();
+    if (/^(ESTAB|TIME-WAIT|CLOSE|SYN|LISTEN)/i.test(trimmed)) {
+      if (cur) sessions.push(cur);
+      const parts = trimmed.split(/\s+/);
+      cur = { state: parts[0], local: parts[3] || '', remote: parts[4] || '', raw: trimmed };
+    } else if (cur && (trimmed.startsWith('cubic') || trimmed.includes('rtt:') || trimmed.includes('cwnd:'))) {
+      cur.raw += ' ' + trimmed;
+      const rttM = cur.raw.match(/rtt:([\d.]+)\/([\d.]+)/);
+      cur.rtt = rttM ? parseFloat(rttM[1]) : null;
+      cur.rttVar = rttM ? parseFloat(rttM[2]) : null;
+      cur.cwnd = parseNum(cur.raw, 'cwnd');
+      cur.ssthresh = parseNum(cur.raw, 'ssthresh');
+      cur.rcv_space = parseNum(cur.raw, 'rcv_space');
+      cur.rto = parseNum(cur.raw, 'rto');
+      cur.retrans = parseRetrans(cur.raw);
+      cur.minrtt = parseNum(cur.raw, 'minrtt');
+      cur.bytes_retrans = parseNum(cur.raw, 'bytes_retrans');
+    }
+  }
+  if (cur) sessions.push(cur);
+
+  const valid = sessions.filter(s => s.rtt != null);
+
+  document.getElementById('hint').textContent = `Найдено сессий: ${valid.length} из ${sessions.length}`;
+
+  if (!valid.length) {
+    document.getElementById('output').style.display = 'none';
+    document.getElementById('hint').textContent = 'Не удалось распарсить сессии. Убедитесь что вставлен полный вывод ss -tin.';
+    return;
+  }
+
+  document.getElementById('output').style.display = 'block';
+
+  const rtts = valid.map(s => s.rtt).filter(Boolean);
+  const cwnds = valid.map(s => s.cwnd).filter(Boolean);
+  const rcvs = valid.map(s => s.rcv_space).filter(Boolean);
+  const rtos = valid.map(s => s.rto).filter(Boolean);
+
+  const avg = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
+  const avgRtt = avg(rtts);
+  const avgCwnd = avg(cwnds);
+  const avgRcv = avg(rcvs);
+  const collapsed = valid.filter(s => s.cwnd != null && s.cwnd < 10);
+  const retransSessions = valid.filter(s => s.retrans && s.retrans.total > 0);
+  const totalRetrans = valid.reduce((a,s) => a + (s.retrans ? s.retrans.total : 0), 0);
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat ${avgRtt > 300 ? 'warn' : avgRtt > 100 ? 'neutral' : 'ok'}">
+      <div class="stat-label">Средний RTT</div>
+      <div class="stat-value">${avgRtt.toFixed(0)} ms</div>
+      <div class="stat-sub">min ${Math.min(...rtts).toFixed(0)} / max ${Math.max(...rtts).toFixed(0)}</div>
+    </div>
+    <div class="stat neutral">
+      <div class="stat-label">Сессий</div>
+      <div class="stat-value">${valid.length}</div>
+    </div>
+    <div class="stat ${collapsed.length / valid.length > 0.3 ? 'warn' : 'ok'}">
+      <div class="stat-label">Средний cwnd</div>
+      <div class="stat-value">${avgCwnd.toFixed(0)}</div>
+      <div class="stat-sub">схлопнуто (&lt;10): ${collapsed.length}</div>
+    </div>
+    <div class="stat ${avgRcv < 30000 ? 'warn' : 'ok'}">
+      <div class="stat-label">Avg rcv_space</div>
+      <div class="stat-value">${(avgRcv/1024).toFixed(0)} KB</div>
+      <div class="stat-sub">max ${(Math.max(...rcvs)/1024).toFixed(0)} KB</div>
+    </div>
+    <div class="stat ${retransSessions.length > 0 ? 'warn' : 'ok'}">
+      <div class="stat-label">С ретрансмитами</div>
+      <div class="stat-value">${retransSessions.length}</div>
+      <div class="stat-sub">итого retrans: ${totalRetrans}</div>
+    </div>
+  `;
+
+  drawHist('rttChart', rtts, '#2a78d6');
+  drawHist('cwndChart', cwnds, '#1baf7a');
+  drawHist('rcvChart', rcvs.map(v => Math.round(v/1024)), '#eda100');
+  drawHist('rtoChart', rtos, '#4a3aa7');
+
+  const problematic = valid.filter(s => (s.retrans && s.retrans.total > 0) || (s.cwnd && s.cwnd < 10));
+  const tbody = document.getElementById('problemRows');
+  if (!problematic.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">Проблемных сессий не обнаружено</td></tr>';
+  } else {
+    problematic.sort((a,b) => (b.retrans?.total||0) - (a.retrans?.total||0));
+    tbody.innerHTML = problematic.map(s => {
+      const isCollapsed = s.cwnd && s.cwnd < 10;
+      const hasRetrans = s.retrans && s.retrans.total > 0;
+      const badge = hasRetrans && isCollapsed
+        ? '<span class="badge badge-red">retrans + collapsed</span>'
+        : hasRetrans ? '<span class="badge badge-amber">retrans</span>'
+        : '<span class="badge badge-amber">cwnd low</span>';
+      return `<tr>
+        <td>${s.remote || '—'}</td>
+        <td>${s.rtt ? s.rtt.toFixed(1) : '—'}</td>
+        <td>${s.cwnd ?? '—'}</td>
+        <td>${s.ssthresh ?? '—'}</td>
+        <td>${s.rcv_space ? Math.round(s.rcv_space/1024)+'K' : '—'}</td>
+        <td>${s.retrans ? s.retrans.cur+'/'+s.retrans.total : '0/0'}</td>
+        <td>${badge}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  const allTbody = document.getElementById('allRows');
+  allTbody.innerHTML = valid.map(s => `<tr>
+    <td>${s.remote || '—'}</td>
+    <td>${s.rtt ? s.rtt.toFixed(1) : '—'}</td>
+    <td>${s.rttVar ? s.rttVar.toFixed(1) : '—'}</td>
+    <td>${s.cwnd ?? '—'}</td>
+    <td>${s.ssthresh ?? '—'}</td>
+    <td>${s.rcv_space ? Math.round(s.rcv_space/1024)+'K' : '—'}</td>
+    <td>${s.rto ?? '—'}</td>
+    <td>${s.retrans ? s.retrans.cur+'/'+s.retrans.total : '—'}</td>
+  </tr>`).join('');
+}
+</script>
+</body>
+</html>
