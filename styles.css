@@ -1,7 +1,13 @@
 /* ===== RESET ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body {
+html {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+body {
   height: 100%;
+  width: 100%;
+  max-width: 100vw;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: #cdb8ef;
   overflow-x: hidden;
@@ -18,7 +24,8 @@ button { font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: tra
   display: flex;
   flex-direction: column;
   background: #e4d5f8;
-  overflow-x: hidden; /* главный ограничитель горизонтального overflow */
+  overflow-x: hidden;
+  position: relative;
 }
 
 /* ===== ШАПКА ===== */
@@ -138,8 +145,10 @@ button { font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: tra
 /* ===== КОНТЕНТ ===== */
 .content {
   flex: 1;
+  width: 100%;
   padding: 16px 14px 0;
-  min-width: 0; /* предотвращает расширение flex-child сверх родителя */
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 /* ===== КАРТОЧКА НЕДЕЛИ ===== */
@@ -183,17 +192,15 @@ button { font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: tra
 /* ===== СЕТКА ===== */
 .grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 12px;
   width: 100%;
-  min-width: 0;
 }
 
 .card {
-  /* Ключевой фикс: button в grid должен иметь явную ширину */
-  width: 100%;
   min-width: 0;
+  max-width: 100%;
   overflow: hidden;
   background: #fff;
   border: none;
@@ -201,9 +208,9 @@ button { font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: tra
   padding: 12px 10px 13px;
   box-shadow: 0 2px 14px rgba(140,90,210,.11);
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: flex-start;
-  gap: 9px;
+  gap: 6px;
   text-align: left;
   transition: transform .15s, box-shadow .15s;
 }
@@ -211,19 +218,19 @@ button { font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: tra
 
 /* Иконка (PNG) */
 .ci {
+  width: 44px; height: 44px;
   flex-shrink: 0;
-  width: 50px; height: 50px;
 }
 .ci img {
-  width: 50px; height: 50px;
+  width: 44px; height: 44px;
   display: block;
   object-fit: contain;
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 /* Тело карточки */
 .cb {
-  flex: 1;
+  width: 100%;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -235,7 +242,8 @@ button { font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: tra
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 3px;
+  gap: 4px;
+  width: 100%;
   min-width: 0;
 }
 
@@ -243,10 +251,10 @@ button { font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: tra
   font-size: 12px; font-weight: 700;
   color: #1A1030;
   line-height: 1.3;
-  flex: 1;
   min-width: 0;
   overflow-wrap: break-word;
   word-break: break-word;
+  flex: 1;
 }
 
 .cs {
