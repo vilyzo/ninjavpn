@@ -1,235 +1,186 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Мама, что дальше?</title>
+<title>Мама, что дальше? — Главная</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Caveat:wght@500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 <main class="screen">
 
-  <!-- ===== ШАПКА ===== -->
-  <header class="header">
-    <!-- Персонаж (позиционирован абсолютно, перекрывает правую часть) -->
-    <img class="char-img" src="assets/01_hero_mom.png" alt="">
+  <div class="scroll-body">
 
-    <!-- Топ-бар -->
-    <div class="topbar">
-      <img class="logo-img" src="assets/02_mama_logo.png" alt="Мама, что дальше?">
-      <div class="topbar-actions">
-        <button class="icon-btn" onclick="stub('Уведомления')" aria-label="Уведомления">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="white">
-            <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
-          </svg>
-          <span class="badge">3</span>
-        </button>
-        <button class="icon-btn" onclick="stub('Профиль')" aria-label="Профиль">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="white">
-            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-          </svg>
-        </button>
-      </div>
+    <div class="top-actions">
+      <button class="round-btn" id="btn-notifications" aria-label="Уведомления">
+        <img src="assets_mom/svg/ic-bell.svg" alt="">
+        <img class="dot" src="assets_mom/svg/ic-badge-dot.svg" alt="" aria-hidden="true">
+      </button>
+      <button class="round-btn" id="btn-profile" aria-label="Профиль">
+        <img src="assets_mom/svg/ic-user.svg" alt="">
+      </button>
     </div>
 
-    <!-- Текст героя (левая половина) -->
-    <div class="hero">
-      <div class="hero-text">
-        <h1 class="greeting">Привет,<br>Анастасия!&nbsp;<span class="h">💜</span></h1>
-        <button class="week-pill" onclick="stub('Неделя беременности')">
-          <strong>24&nbsp;неделя</strong>&nbsp;беременности
-          <svg viewBox="0 0 7 12" width="6" height="10" fill="none" style="margin-left:6px;flex-shrink:0">
-            <path d="M1 1l5 5-5 5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-        <p class="hero-sub">Мы рядом и подскажем,<br>что важно сделать сейчас&nbsp;💜</p>
-      </div>
-    </div>
-  </header>
+    <section class="hero">
+      <img class="hero__mom" src="assets_mom/png/hero-mom@2x.png" alt="">
+      <div class="hero__hand" aria-hidden="true">Ты<br>всё<br>можешь<img src="assets_mom/svg/ic-heart-outline.svg" alt=""></div>
 
-  <!-- ===== ОСНОВНОЙ КОНТЕНТ ===== -->
-  <div class="content">
+      <img class="logo" src="assets_mom/png/logo-cloud@2x.png" alt="Мама, что дальше?">
+      <h1 class="greet">Привет,<br><span data-user-name>Анастасия!</span><img src="assets_mom/svg/ic-heart.svg" alt=""></h1>
+      <button class="week-pill" id="btn-week">
+        <b data-week>24 неделя</b> беременности
+        <img src="assets_mom/svg/ic-chevron-right.svg" alt="">
+      </button>
+      <p class="lead">Мы рядом и подскажем,<br>что важно сделать сейчас<img src="assets_mom/svg/ic-heart-violet.svg" alt=""></p>
+    </section>
 
-    <!-- Карточка недели -->
-    <button class="weekly" onclick="stub('Что важно на этой неделе?')">
-      <div class="weekly-icon">
-        <img src="assets/icon_calendar.png" width="36" height="36" alt="" style="object-fit:contain;display:block;">
-      </div>
-      <div class="weekly-body">
-        <div class="weekly-title">Что важно<br>на этой неделе?</div>
-        <div class="weekly-sub">3 задачи на сегодня</div>
-      </div>
-      <svg class="chev" viewBox="0 0 7 12" width="7" height="12" fill="none">
-        <path d="M1 1l5 5-5 5" stroke="#9B6ECC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
+    <button class="focus" id="btn-focus">
+      <img class="focus__icon" src="assets_mom/svg/ic-calendar-tile.svg" alt="">
+      <span class="focus__text">
+        <span class="focus__title">Что важно<br>на этой неделе?</span>
+        <span class="focus__sub" data-tasks>3 задачи на сегодня</span>
+      </span>
+      <span class="chev-btn"><img src="assets_mom/svg/ic-chevron-right.svg" alt=""></span>
     </button>
 
-    <!-- Сетка 2×4 -->
-    <div class="grid">
-
-      <button class="card" onclick="stub('Беременность по неделям')">
-        <div class="ci"><img src="assets/04_icon_baby.png" alt=""></div>
-        <div class="cb">
-          <div class="ct-row">
-            <span class="ct">Беременность<br>по неделям</span>
-            <svg class="chev sm" viewBox="0 0 7 12" width="6" height="10" fill="none"><path d="M1 1l5 5-5 5" stroke="#C880B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <span class="cs">Развитие, изменения<br>в тебе, рекомендации</span>
-        </div>
+    <nav class="grid" aria-label="Разделы">
+      <button class="card" data-section="pregnancy">
+        <span class="card__art card__art--pink"><img src="assets_mom/png/ill-embryo@2x.png" alt=""></span>
+        <span class="card__body"><span class="card__title">Беременность<br>по неделям</span><span class="card__sub">Развитие, изменения в тебе, рекомендации</span></span>
+        <img class="chev" src="assets_mom/svg/ic-chevron-right.svg" alt="">
       </button>
-
-      <button class="card" onclick="stub('Дневник беременности')">
-        <div class="ci"><img src="assets/05_icon_diary.png" alt=""></div>
-        <div class="cb">
-          <div class="ct-row">
-            <span class="ct">Дневник<br>беременности</span>
-            <svg class="chev sm" viewBox="0 0 7 12" width="6" height="10" fill="none"><path d="M1 1l5 5-5 5" stroke="#C880B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <span class="cs">Записи, эмоции, фото<br>и важные события</span>
-        </div>
+      <button class="card" data-section="diary">
+        <span class="card__art card__art--pink"><img src="assets_mom/png/ill-diary@2x.png" alt=""></span>
+        <span class="card__body"><span class="card__title">Дневник<br>беременности</span><span class="card__sub">Записи, эмоции, фото и важные события</span></span>
+        <img class="chev" src="assets_mom/svg/ic-chevron-right.svg" alt="">
       </button>
-
-      <button class="card" onclick="stub('Обследования')">
-        <div class="ci"><img src="assets/06_icon_medical.png" alt=""></div>
-        <div class="cb">
-          <div class="ct-row">
-            <span class="ct">Обследования</span>
-            <svg class="chev sm" viewBox="0 0 7 12" width="6" height="10" fill="none"><path d="M1 1l5 5-5 5" stroke="#72C4D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <span class="cs">Анализы, УЗИ,<br>приёмы по сроку</span>
-        </div>
+      <button class="card" data-section="checkup">
+        <span class="card__art card__art--violet"><img src="assets_mom/png/ill-checkup@2x.png" alt=""></span>
+        <span class="card__body"><span class="card__title">Обследования</span><span class="card__sub">Анализы, УЗИ, приёмы по сроку</span></span>
+        <img class="chev" src="assets_mom/svg/ic-chevron-right.svg" alt="">
       </button>
-
-      <button class="card" onclick="stub('Список покупок')">
-        <div class="ci"><img src="assets/07_icon_shopping_bag.png" alt=""></div>
-        <div class="cb">
-          <div class="ct-row">
-            <span class="ct">Список покупок</span>
-            <svg class="chev sm" viewBox="0 0 7 12" width="6" height="10" fill="none"><path d="M1 1l5 5-5 5" stroke="#C880B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <span class="cs">Всё необходимое<br>для первых месяцев</span>
-        </div>
+      <button class="card" data-section="shopping">
+        <span class="card__art card__art--pink"><img src="assets_mom/png/ill-shopping-bag@2x.png" alt=""></span>
+        <span class="card__body"><span class="card__title">Список покупок</span><span class="card__sub">Всё необходимое для первых месяцев</span></span>
+        <img class="chev" src="assets_mom/svg/ic-chevron-right.svg" alt="">
       </button>
-
-      <button class="card" onclick="stub('Подготовка к родам')">
-        <div class="ci"><img src="assets/08_icon_birth_bag.png" alt=""></div>
-        <div class="cb">
-          <div class="ct-row">
-            <span class="ct">Подготовка<br>к родам</span>
-            <svg class="chev sm" viewBox="0 0 7 12" width="6" height="10" fill="none"><path d="M1 1l5 5-5 5" stroke="#C8A070" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <span class="cs">Роддом, документы,<br>сумка, план родов</span>
-        </div>
+      <button class="card" data-section="birth">
+        <span class="card__art card__art--pink"><img src="assets_mom/png/ill-hospital-bag@2x.png" alt=""></span>
+        <span class="card__body"><span class="card__title">Подготовка<br>к родам</span><span class="card__sub">Роддом, документы, сумка, план родов</span></span>
+        <img class="chev" src="assets_mom/svg/ic-chevron-right.svg" alt="">
       </button>
-
-      <button class="card" onclick="stub('Полезные рекомендации')">
-        <div class="ci"><img src="assets/09_icon_books.png" alt=""></div>
-        <div class="cb">
-          <div class="ct-row">
-            <span class="ct">Полезные<br>рекомендации</span>
-            <svg class="chev sm" viewBox="0 0 7 12" width="6" height="10" fill="none"><path d="M1 1l5 5-5 5" stroke="#9080C8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <span class="cs">Питание, самочувствие,<br>уход за собой и другое</span>
-        </div>
+      <button class="card" data-section="tips">
+        <span class="card__art card__art--violet"><img src="assets_mom/png/ill-books@2x.png" alt=""></span>
+        <span class="card__body"><span class="card__title">Полезные<br>рекомендации</span><span class="card__sub">Питание, самочувствие, уход за собой и другое</span></span>
+        <img class="chev" src="assets_mom/svg/ic-chevron-right.svg" alt="">
       </button>
-
-      <button class="card" onclick="stub('Ассистент')">
-        <div class="ci"><img src="assets/10_icon_robot.png" alt=""></div>
-        <div class="cb">
-          <div class="ct-row">
-            <span class="ct">Ассистент</span>
-            <svg class="chev sm" viewBox="0 0 7 12" width="6" height="10" fill="none"><path d="M1 1l5 5-5 5" stroke="#78B8E8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <span class="cs">Задай любой вопрос<br>о беременности</span>
-        </div>
+      <button class="card" data-section="assistant">
+        <span class="card__art card__art--violet"><img src="assets_mom/png/ill-assistant@2x.png" alt=""></span>
+        <span class="card__body"><span class="card__title">Ассистент</span><span class="card__sub">Задай любой вопрос о беременности</span></span>
+        <img class="chev" src="assets_mom/svg/ic-chevron-right.svg" alt="">
       </button>
-
-      <button class="card" onclick="stub('Профиль')">
-        <div class="ci"><img src="assets/11_icon_profile.png" alt=""></div>
-        <div class="cb">
-          <div class="ct-row">
-            <span class="ct">Профиль</span>
-            <svg class="chev sm" viewBox="0 0 7 12" width="6" height="10" fill="none"><path d="M1 1l5 5-5 5" stroke="#A080C8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <span class="cs">Твои данные,<br>настройки, подписка</span>
-        </div>
+      <button class="card" data-section="profile">
+        <span class="card__art card__art--violet"><img src="assets_mom/png/ill-profile@2x.png" alt=""></span>
+        <span class="card__body"><span class="card__title">Профиль</span><span class="card__sub">Твои данные, настройки, подписка</span></span>
+        <img class="chev" src="assets_mom/svg/ic-chevron-right.svg" alt="">
       </button>
+    </nav>
 
-    </div>
-
-    <!-- Баннер «Малыш родился!» -->
-    <button class="baby-banner" onclick="stub('Малыш родился!')">
-      <img class="baby-img" src="assets/03_baby_banner.png" alt="">
-      <div class="baby-text">
-        <div class="baby-title">Малыш родился!</div>
-        <div class="baby-sub">Расскажи нам о своём малыше,<br>чтобы получить новый план заботы</div>
-      </div>
-      <div class="baby-btn">
-        <svg viewBox="0 0 7 12" width="7" height="12" fill="none">
-          <path d="M1 1l5 5-5 5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
+    <button class="baby" id="btn-baby">
+      <img class="deco deco--1" src="assets_mom/svg/ic-heart-soft.svg" alt="">
+      <img class="deco deco--2" src="assets_mom/svg/ic-heart-soft.svg" alt="">
+      <img class="baby__art" src="assets_mom/png/ill-newborn@2x.png" alt="">
+      <span class="baby__text">
+        <span class="baby__title">Малыш родился!</span>
+        <span class="baby__sub">Расскажи нам о своём малыше,<br>чтобы получить новый план заботы</span>
+      </span>
+      <span class="chev-btn"><img src="assets_mom/svg/ic-chevron-right.svg" alt=""></span>
     </button>
 
-    <div class="spacer"></div>
-  </div>
+  </div><!-- /.scroll-body -->
 
-  <!-- ===== НИЖНЯЯ НАВИГАЦИЯ ===== -->
-  <nav class="bottom-nav">
-    <button class="tab active">
-      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-      </svg>
-      <span>Главная</span>
-    </button>
-    <button class="tab" onclick="stub('О проекте')">
-      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-      </svg>
-      <span>О проекте</span>
-    </button>
-    <button class="tab" onclick="stub('Служба заботы')">
-      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-        <path d="M12 1C5.93 1 1 5.93 1 12v4c0 1.1.9 2 2 2h1c1.1 0 2-.9 2-2v-3c0-1.1-.9-2-2-2H3.07C3.56 7.19 7.38 4 12 4s8.44 3.19 8.93 7H20c-1.1 0-2 .9-2 2v3c0 1.1.9 2 2 2h1c1.1 0 2-.9 2-2v-4c0-6.07-4.93-11-11-11z"/>
-      </svg>
-      <span>Служба заботы</span>
-    </button>
+  <nav class="tabbar" aria-label="Навигация">
+    <button class="tab" aria-current="page" data-tab="home"><img src="assets_mom/svg/ic-tab-home.svg" alt="">Главная</button>
+    <button class="tab" data-tab="info"><img src="assets_mom/svg/ic-tab-info.svg" alt="">О проекте</button>
+    <button class="tab" data-tab="support"><img src="assets_mom/svg/ic-tab-support.svg" alt="">Служба заботы</button>
   </nav>
+  <img class="home-ind" src="assets_mom/svg/home-indicator.svg" alt="">
 
 </main>
-
-<!-- ===== ПОПАП-ЗАГЛУШКА ===== -->
-<div class="overlay" id="overlay" onclick="closeStub()">
-  <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-icon">🚧</div>
-    <div class="modal-title">Раздел в разработке</div>
-    <div class="modal-text" id="modalText"></div>
-    <button class="modal-btn" onclick="closeStub()">Понятно</button>
-  </div>
-</div>
-
 <script>
-  if (window.Telegram?.WebApp) {
-    window.Telegram.WebApp.ready();
-    window.Telegram.WebApp.expand();
+// ── Config — заменить на данные из API ────────────────────────────────
+const APP = {
+  pregnancyWeek: 24,
+  tasksToday: 3,
+  hasNotifications: true,
+  userName: null,         // будет заменён именем из Telegram
+};
+
+// ── Telegram WebApp ───────────────────────────────────────────────────
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  const firstName = tg.initDataUnsafe?.user?.first_name;
+  if (firstName) APP.userName = firstName;
+}
+
+// ── Высота viewport (Telegram меняет её при открытии клавиатуры) ──────
+function setViewportHeight() {
+  const h = tg?.viewportHeight || window.innerHeight;
+  document.documentElement.style.setProperty('--tg-vh', h + 'px');
+}
+setViewportHeight();
+if (tg) tg.onEvent('viewportChanged', setViewportHeight);
+else window.addEventListener('resize', setViewportHeight);
+
+// ── Склонение числительных (рус.) ────────────────────────────────────
+function plural(n, one, few, many) {
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few;
+  return many;
+}
+
+// ── Отрисовка динамических данных ────────────────────────────────────
+function render() {
+  if (APP.userName) {
+    document.querySelector('[data-user-name]').textContent = APP.userName + '!';
   }
 
-  function stub(section) {
-    if (window.Telegram?.WebApp?.showAlert) {
-      window.Telegram.WebApp.showAlert('Раздел «' + section + '» скоро будет готов 🚧');
-    } else {
-      document.getElementById('modalText').textContent = '«' + section + '» скоро будет готов';
-      document.getElementById('overlay').classList.add('open');
-      document.body.style.overflow = 'hidden';
-    }
-  }
+  const w = APP.pregnancyWeek;
+  document.querySelector('[data-week]').textContent =
+    w + ' ' + plural(w, 'неделя', 'недели', 'недель');
 
-  function closeStub() {
-    document.getElementById('overlay').classList.remove('open');
-    document.body.style.overflow = '';
-  }
+  const t = APP.tasksToday;
+  document.querySelector('[data-tasks]').textContent =
+    t + ' ' + plural(t, 'задача', 'задачи', 'задач') + ' на сегодня';
 
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeStub(); });
+  document.querySelector('#btn-notifications .dot').style.display =
+    APP.hasNotifications ? '' : 'none';
+}
+render();
+
+// ── Переключение табов ────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.removeAttribute('aria-current'));
+    tab.setAttribute('aria-current', 'page');
+    // TODO: роутинг по tab.dataset.tab
+  });
+});
+
+// ── Навигация по разделам ─────────────────────────────────────────────
+document.querySelectorAll('[data-section]').forEach(card => {
+  card.addEventListener('click', () => {
+    // TODO: переход на экран section или tg.switchInlineQuery
+    console.log('navigate:', card.dataset.section);
+  });
+});
 </script>
 </body>
 </html>
