@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>«Мама, что дальше?» — прогресс разработки</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #faf7f5; color: #2d2a28;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  .updated { color: #7a7470; font-size: 14px; margin-bottom: 32px; }
+  h2 { font-size: 18px; margin: 40px 0 16px; }
+  .block {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 16px; padding: 16px 18px; border-radius: 12px;
+    background: #fff; border: 1px solid #eee; margin-bottom: 10px;
+  }
+  .block-main { flex: 1; }
+  .block-name { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+  .block-note { font-size: 13px; color: #5c5753; line-height: 1.4; }
+  .badge {
+    flex-shrink: 0; font-size: 12px; font-weight: 600; padding: 4px 10px;
+    border-radius: 999px; white-space: nowrap; margin-top: 2px;
+  }
+  .changelog { list-style: none; padding: 0; margin: 0; }
+  .changelog li {
+    padding: 12px 0; border-bottom: 1px solid #eee; font-size: 14px; line-height: 1.5;
+  }
+  .changelog li:last-child { border-bottom: none; }
+  .changelog .cl-date { color: #9a938d; font-size: 12px; display: block; margin-bottom: 2px; }
+  .footer { margin-top: 48px; font-size: 12px; color: #9a938d; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>«Мама, что дальше?»</h1>
+  <div class="updated">Обновлено: 2026-10-14</div>
+
+  <h2>Прогресс по разделам</h2>
+  <div class="block">
+    <div class="block-main">
+      <div class="block-name">Регистрация и главный экран</div>
+      <div class="block-note">Пользователь проходит путь от первого запуска бота до персонального главного экрана. Основа данных готова, сейчас в работе сами экраны и диалог с ботом.</div>
+    </div>
+    <div class="badge" style="color:#9a6700; background:#fff8c5;">В работе</div>
+  </div>
+  <div class="block">
+    <div class="block-main">
+      <div class="block-name">Оплата подписки</div>
+      <div class="block-note">Экраны выбора тарифа, оплата через Робокассу и Telegram Stars, подтверждение и уведомления готовы. Финальная проверка на реальных платежах через Робокассу ждёт от тебя данные для подключения (MerchantLogin).</div>
+    </div>
+    <div class="badge" style="color:#9a6700; background:#fff8c5;">В работе</div>
+  </div>
+  <div class="block">
+    <div class="block-main">
+      <div class="block-name">Партнёрская программа</div>
+      <div class="block-note">Ссылки для блогеров, учёт переходов и начислений.</div>
+    </div>
+    <div class="badge" style="color:#57606a; background:#f6f8fa;">В очереди</div>
+  </div>
+  <div class="block">
+    <div class="block-main">
+      <div class="block-name">Дневник (беременности и малыша)</div>
+      <div class="block-note">Записи о самочувствии, кормлениях, сне и других событиях.</div>
+    </div>
+    <div class="badge" style="color:#57606a; background:#f6f8fa;">В очереди</div>
+  </div>
+  <div class="block">
+    <div class="block-main">
+      <div class="block-name">Питание</div>
+      <div class="block-note">Рекомендации по питанию с учётом возраста малыша и типа вскармливания.</div>
+    </div>
+    <div class="badge" style="color:#57606a; background:#f6f8fa;">В очереди</div>
+  </div>
+  <div class="block">
+    <div class="block-main">
+      <div class="block-name">Вакцинация</div>
+      <div class="block-note">План прививок по возрасту, отметка сделанных.</div>
+    </div>
+    <div class="badge" style="color:#57606a; background:#f6f8fa;">В очереди</div>
+  </div>
+  <div class="block">
+    <div class="block-main">
+      <div class="block-name">Список покупок</div>
+      <div class="block-note">Базовая версия готова и работает. Расширенный общий каталог покупок — в очереди.</div>
+    </div>
+    <div class="badge" style="color:#1a7f37; background:#dafbe1;">Готово</div>
+  </div>
+  <div class="block">
+    <div class="block-main">
+      <div class="block-name">Обследования и приёмы к врачу</div>
+      <div class="block-note">Базовая версия (календарь обследований по неделям) готова и работает. Более подробная версия с журналом визитов — в очереди.</div>
+    </div>
+    <div class="badge" style="color:#1a7f37; background:#dafbe1;">Готово</div>
+  </div>
+  <div class="block">
+    <div class="block-main">
+      <div class="block-name">Подготовка к родам</div>
+      <div class="block-note">Чек-лист готовности, документы, объясняющий контент о родах.</div>
+    </div>
+    <div class="badge" style="color:#57606a; background:#f6f8fa;">В очереди</div>
+  </div>
+  <div class="block">
+    <div class="block-main">
+      <div class="block-name">Служба заботы (поддержка)</div>
+      <div class="block-note">Обращения пользователей из бота и приложения в одном месте.</div>
+    </div>
+    <div class="badge" style="color:#57606a; background:#f6f8fa;">В очереди</div>
+  </div>
+
+  <h2>Что нового</h2>
+  <ul class="changelog">
+    <li><span class="cl-date">2026-10-14</span>Бот теперь сам сообщает пользователю, когда подписка активирована или продлена — сообщением с кнопкой «Открыть».</li>
+    <li><span class="cl-date">2026-10-14</span>В приложении появились экран выбора тарифа подписки и экран ожидания оплаты — можно выбрать срок и оплатить через Робокассу или Telegram Stars.</li>
+    <li><span class="cl-date">2026-10-13</span>Готова серверная часть оплаты: приём платежей от Робокассы и Telegram Stars и активация подписки.</li>
+  </ul>
+
+  <div class="footer">Страница обновляется по ходу разработки.</div>
+</div>
+</body>
+</html>
