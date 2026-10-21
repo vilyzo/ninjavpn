@@ -5,67 +5,109 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>«Мама, что дальше?» — прогресс разработки</title>
 <style>
-  :root { color-scheme: light; }
+  :root {
+    color-scheme: light dark;
+    --bg: #faf7f5; --fg: #2d2a28; --muted: #7a7470; --muted-2: #9a938d;
+    --card-bg: #fff; --card-border: #eee; --note-fg: #5c5753;
+    --track-bg: #eee; --accent: #1a7f37; --badge-done-bg: #dafbe1;
+    --badge-progress-bg: #fff8c5; --badge-planned-bg: #f6f8fa;
+    --toggle-fg: #2d2a28; --toggle-bg: #fff; --toggle-border: #eee;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1c1a19; --fg: #f0ede9; --muted: #a39a93; --muted-2: #8a8178;
+      --card-bg: #262321; --card-border: #39352f; --note-fg: #c9c0b7;
+      --track-bg: #39352f; --accent: #3fb950; --badge-done-bg: #10381f;
+      --badge-progress-bg: #3d330a; --badge-planned-bg: #2d2a28;
+      --toggle-fg: #f0ede9; --toggle-bg: #262321; --toggle-border: #39352f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1c1a19; --fg: #f0ede9; --muted: #a39a93; --muted-2: #8a8178;
+    --card-bg: #262321; --card-border: #39352f; --note-fg: #c9c0b7;
+    --track-bg: #39352f; --accent: #3fb950; --badge-done-bg: #10381f;
+    --badge-progress-bg: #3d330a; --badge-planned-bg: #2d2a28;
+    --toggle-fg: #f0ede9; --toggle-bg: #262321; --toggle-border: #39352f;
+  }
   * { box-sizing: border-box; }
   body {
     margin: 0; padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: #faf7f5; color: #2d2a28;
+    background: var(--bg); color: var(--fg);
+    transition: background .15s ease, color .15s ease;
   }
-  .wrap { max-width: 760px; margin: 0 auto; padding: 32px 20px 64px; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 32px 20px 64px; position: relative; }
+  .theme-toggle {
+    position: absolute; top: 28px; right: 20px;
+    width: 40px; height: 40px; border-radius: 999px;
+    background: var(--toggle-bg); color: var(--toggle-fg);
+    border: 1px solid var(--toggle-border); cursor: pointer;
+    font-size: 18px; line-height: 1; display: flex; align-items: center; justify-content: center;
+  }
+  .theme-toggle:hover { opacity: .85; }
   h1 { font-size: 26px; margin: 0 0 4px; }
-  .updated { color: #7a7470; font-size: 14px; margin-bottom: 32px; }
+  .updated { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
   h2 { font-size: 18px; margin: 40px 0 16px; }
   .block {
     display: flex; align-items: flex-start; justify-content: space-between;
     gap: 16px; padding: 16px 18px; border-radius: 12px;
-    background: #fff; border: 1px solid #eee; margin-bottom: 10px;
+    background: var(--card-bg); border: 1px solid var(--card-border); margin-bottom: 10px;
   }
   .block-main { flex: 1; }
   .block-name { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
-  .block-note { font-size: 13px; color: #5c5753; line-height: 1.4; }
+  .block-note { font-size: 13px; color: var(--note-fg); line-height: 1.4; }
   .badge {
     flex-shrink: 0; font-size: 12px; font-weight: 600; padding: 4px 10px;
     border-radius: 999px; white-space: nowrap; margin-top: 2px;
   }
   .changelog { list-style: none; padding: 0; margin: 0; }
   .changelog li {
-    padding: 12px 0; border-bottom: 1px solid #eee; font-size: 14px; line-height: 1.5;
+    padding: 12px 0; border-bottom: 1px solid var(--card-border); font-size: 14px; line-height: 1.5;
   }
   .changelog li:last-child { border-bottom: none; }
-  .changelog .cl-date { color: #9a938d; font-size: 12px; display: block; margin-bottom: 2px; }
-  .footer { margin-top: 48px; font-size: 12px; color: #9a938d; }
+  .changelog .cl-date { color: var(--muted-2); font-size: 12px; display: block; margin-bottom: 2px; }
+  .footer { margin-top: 48px; font-size: 12px; color: var(--muted-2); }
   .progress-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
   .progress-track {
-    flex: 1; height: 10px; border-radius: 999px; background: #eee; overflow: hidden;
+    flex: 1; height: 10px; border-radius: 999px; background: var(--track-bg); overflow: hidden;
   }
-  .progress-fill { height: 100%; background: #1a7f37; border-radius: 999px; }
-  .progress-label { font-size: 13px; font-weight: 600; color: #1a7f37; white-space: nowrap; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 999px; }
+  .progress-label { font-size: 13px; font-weight: 600; color: var(--accent); white-space: nowrap; }
   .stats { list-style: none; padding: 0; margin: 0; font-size: 14px; }
   .stats li {
-    display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;
+    display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--card-border);
   }
   .stats li:last-child { border-bottom: none; }
-  .stats .stat-count { font-weight: 600; color: #2d2a28; margin-left: 12px; }
-  .stats-footnote { font-size: 12px; color: #9a938d; margin-top: 8px; }
+  .stats .stat-count { font-weight: 600; color: var(--fg); margin-left: 12px; }
+  .stats-footnote { font-size: 12px; color: var(--muted-2); margin-top: 8px; }
 </style>
+<script>
+  (function () {
+    var saved = localStorage.getItem("mama-dashboard-theme");
+    if (saved === "dark" || saved === "light") {
+      document.documentElement.setAttribute("data-theme", saved);
+    }
+  })();
+</script>
 </head>
 <body>
 <div class="wrap">
+  <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Переключить тему" title="Переключить светлую/тёмную тему">🌓</button>
   <h1>«Мама, что дальше?»</h1>
   <div class="updated">Обновлено: 2026-10-21</div>
 
   <h2>Задачи в разработке — общая картина</h2>
   <div class="progress-row">
-    <div class="progress-track"><div class="progress-fill" style="width:58%;"></div></div>
-    <div class="progress-label">58% готово</div>
+    <div class="progress-track"><div class="progress-fill" style="width:56%;"></div></div>
+    <div class="progress-label">56% готово</div>
   </div>
   <ul class="stats">
     <li><span>готово</span><span class="stat-count">77</span></li>
-    <li><span>в очереди, ещё не спроектировано</span><span class="stat-count">53</span></li>
+    <li><span>спроектировано, готово к разработке</span><span class="stat-count">3</span></li>
+    <li><span>в очереди, ещё не спроектировано</span><span class="stat-count">56</span></li>
     <li><span>решили не делать</span><span class="stat-count">2</span></li>
   </ul>
-  <div class="stats-footnote">Всего задач в трекере разработки: 132.</div>
+  <div class="stats-footnote">Всего задач в трекере разработки: 138.</div>
 
   <h2>Прогресс по разделам</h2>
   <div class="block">
@@ -166,5 +208,25 @@
 
   <div class="footer">Страница обновляется по ходу разработки.</div>
 </div>
+<script>
+  (function () {
+    var btn = document.getElementById("theme-toggle");
+    var html = document.documentElement;
+    function prefersDark() {
+      return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    }
+    function isDark() {
+      var explicit = html.getAttribute("data-theme");
+      if (explicit === "dark") return true;
+      if (explicit === "light") return false;
+      return prefersDark();
+    }
+    btn.addEventListener("click", function () {
+      var next = isDark() ? "light" : "dark";
+      html.setAttribute("data-theme", next);
+      localStorage.setItem("mama-dashboard-theme", next);
+    });
+  })();
+</script>
 </body>
 </html>
