@@ -136,26 +136,33 @@ h2 {
 }
 .block-note { font-size: 13.5px; color: var(--muted); line-height: 1.55; }
 
-.roadmap { position: relative; }
-.road-step {
-  position: relative; display: flex; gap: 18px; padding-bottom: 28px;
+.roadmap {
+  display: flex; align-items: flex-start; gap: 0; overflow-x: auto;
+  margin: 0 -20px; padding: 6px 20px 18px; scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
 }
-.road-step:last-child { padding-bottom: 0; }
+.roadmap::-webkit-scrollbar { height: 6px; }
+.roadmap::-webkit-scrollbar-track { background: transparent; }
+.roadmap::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
+.road-step {
+  flex: 0 0 240px; width: 240px; padding-right: 22px; scroll-snap-align: start;
+}
+.road-rail { position: relative; height: 38px; margin-bottom: 14px; }
 .road-num {
   flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
   border: 1px solid var(--accent); color: var(--accent); background: var(--surface);
   display: flex; align-items: center; justify-content: center;
   font: 500 .78rem/1 var(--font-mono); position: relative; z-index: 1;
-  box-shadow: 0 0 0 4px var(--bg);
 }
-.road-step::before {
-  content: ""; position: absolute; left: 18px; top: 38px; bottom: -8px; width: 1px;
-  background: linear-gradient(var(--accent), transparent);
+.road-rail::after {
+  content: ""; position: absolute; left: 38px; right: -22px; top: 18px; height: 1px;
+  background: linear-gradient(90deg, var(--accent), rgba(61,245,167,.15));
 }
-.road-step:last-child::before { display: none; }
-.road-body { padding-top: 6px; }
-.road-title { font-family: var(--font-display); font-weight: 500; font-size: 15px; margin-bottom: 4px; }
-.road-note { font-size: 13.5px; color: var(--muted); line-height: 1.55; max-width: 58ch; }
+.road-step:last-child .road-rail::after { display: none; }
+.road-step:last-child { padding-right: 0; }
+.road-title { font-family: var(--font-display); font-weight: 500; font-size: 15px; margin-bottom: 6px; }
+.road-note { font-size: 13.5px; color: var(--muted); line-height: 1.55; }
+.roadmap-hint { font-size: 12px; color: var(--muted-2); margin: -8px 0 16px; }
 
 .changelog { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
 .changelog li {
@@ -217,55 +224,42 @@ h2 {
   <div class="eyebrow">Дальше в разработке</div>
   <h2 style="margin-top:0;">Что дальше</h2>
   <p class="section-lead">Порядок — по приоритету, не точный план по датам: сроки каждого шага зависят от того, что найдётся по ходу разработки.</p>
+  <p class="roadmap-hint">← можно листать вбок →</p>
   <div class="roadmap">
     <div class="road-step">
-      <div class="road-num">01</div>
-      <div class="road-body">
-        <div class="road-title">Дневник малыша</div>
-        <div class="road-note">Кормления, сон и другие события по дню — продолжение уже готового «Дневника беременности». Техническая основа под кормления уже сделана, экранов в приложении пока нет.</div>
-      </div>
+      <div class="road-rail"><div class="road-num">01</div></div>
+      <div class="road-title">Дневник малыша</div>
+      <div class="road-note">Кормления, сон и другие события по дню — продолжение уже готового «Дневника беременности». Техническая основа под кормления уже сделана, экранов в приложении пока нет.</div>
     </div>
     <div class="road-step">
-      <div class="road-num">02</div>
-      <div class="road-body">
-        <div class="road-title">«Когда стоит обсудить развитие с врачом» отдельным экраном</div>
-        <div class="road-note">Сейчас это компактный текст внутри «Навыков малыша» — по твоей просьбе разворачиваем в отдельную подробную страницу с тем же текстом, что уже согласован с педиатром.</div>
-      </div>
+      <div class="road-rail"><div class="road-num">02</div></div>
+      <div class="road-title">«Когда стоит обсудить развитие с врачом» отдельным экраном</div>
+      <div class="road-note">Сейчас это компактный текст внутри «Навыков малыша» — по твоей просьбе разворачиваем в отдельную подробную страницу с тем же текстом, что уже согласован с педиатром.</div>
     </div>
     <div class="road-step">
-      <div class="road-num">03</div>
-      <div class="road-body">
-        <div class="road-title">Питание</div>
-        <div class="road-note">Рекомендации по питанию с учётом возраста малыша и типа вскармливания. Первый технический кирпичик (точный расчёт возраста по календарю) уже готов.</div>
-      </div>
+      <div class="road-rail"><div class="road-num">03</div></div>
+      <div class="road-title">Питание</div>
+      <div class="road-note">Рекомендации по питанию с учётом возраста малыша и типа вскармливания. Первый технический кирпичик (точный расчёт возраста по календарю) уже готов.</div>
     </div>
     <div class="road-step">
-      <div class="road-num">04</div>
-      <div class="road-body">
-        <div class="road-title">Список покупок</div>
-        <div class="road-note">Раздел ещё не реализован, в плане следующим шагом.</div>
-      </div>
+      <div class="road-rail"><div class="road-num">04</div></div>
+      <div class="road-title">Список покупок</div>
+      <div class="road-note">Раздел ещё не реализован, в плане следующим шагом.</div>
     </div>
     <div class="road-step">
-      <div class="road-num">05</div>
-      <div class="road-body">
-        <div class="road-title">Подготовка к родам</div>
-        <div class="road-note">Чек-лист готовности, документы, объясняющий контент о родах — сейчас готовы только два экстренных блока на главном экране раздела.</div>
-      </div>
+      <div class="road-rail"><div class="road-num">05</div></div>
+      <div class="road-title">Подготовка к родам</div>
+      <div class="road-note">Чек-лист готовности, документы, объясняющий контент о родах — сейчас готовы только два экстренных блока на главном экране раздела.</div>
     </div>
     <div class="road-step">
-      <div class="road-num">06</div>
-      <div class="road-body">
-        <div class="road-title">Доработки главного экрана</div>
-        <div class="road-note">Реальное содержимое страницы «О проекте», разделы «Мои дети» и «Настройки» в профиле.</div>
-      </div>
+      <div class="road-rail"><div class="road-num">06</div></div>
+      <div class="road-title">Доработки главного экрана</div>
+      <div class="road-note">Реальное содержимое страницы «О проекте», разделы «Мои дети» и «Настройки» в профиле.</div>
     </div>
     <div class="road-step">
-      <div class="road-num">07</div>
-      <div class="road-body">
-        <div class="road-title">Финальная проверка оплаты через Робокассу</div>
-        <div class="road-note">Код полностью готов и работает в тестовом режиме — ждём от тебя данные для подключения настоящего приёма платежей (MerchantLogin).</div>
-      </div>
+      <div class="road-rail"><div class="road-num">07</div></div>
+      <div class="road-title">Финальная проверка оплаты через Робокассу</div>
+      <div class="road-note">Код полностью готов и работает в тестовом режиме — ждём от тебя данные для подключения настоящего приёма платежей (MerchantLogin).</div>
     </div>
   </div>
 
