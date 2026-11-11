@@ -79,6 +79,20 @@ details[open] summary::after{transform:rotate(45deg)}
 details .body{padding:0 20px 18px;color:var(--muted)}
 .note{margin-top:14px;color:var(--muted);font-size:.9rem}
 
+
+figure{margin:14px 0 0}
+figure img{display:block;width:100%;height:auto;border-radius:14px;border:1px solid var(--line);background:var(--surface-2)}
+figcaption{color:var(--muted);font-size:.85rem;margin-top:8px}
+.setup .card{margin-bottom:14px}
+.setup p{color:var(--muted)}
+.setup p b,.setup li b{color:var(--text)}
+.setup .list{margin-top:10px}
+code{font:500 .9em ui-monospace,Menlo,monospace;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--accent);overflow-wrap:anywhere}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:.95rem}
+th,td{text-align:left;padding:10px 12px;border:1px solid var(--line)}
+th{background:var(--surface-2);color:var(--muted);font-weight:500}
+.quote{margin-top:14px;padding:12px 16px;border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 12px 12px 0;color:var(--text)!important}
+
 .dock{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 35%);z-index:10}
 .dock .btn{max-width:720px;margin-inline:auto}
 footer{padding:20px 0;color:var(--muted);font-size:.85rem;text-align:center}
@@ -127,8 +141,62 @@ footer{padding:20px 0;color:var(--muted);font-size:.85rem;text-align:center}
         <li>Роутер Keenetic начиная с модели Start или версии OS 4.3+</li>
         <li>Keenetic подключен как основной или вторым через патчкорд к основному</li>
       </ul>
-      <a class="btn btn--ghost" style="margin-top:8px" target="_blank" rel="noopener" href="https://beaded-army-ec5.notion.site/Keenetic-VPN-38a2821604ef80538cb5daad920fca1b">Предварительная настройка с вашей стороны</a>
+      <a class="btn btn--ghost" style="margin-top:8px" href="#setup">Как подготовить роутер — инструкция ниже</a>
     </div>
+  </section>
+
+  <section id="setup" class="setup">
+    <p class="eyebrow">Подготовка</p>
+    <h2>Предварительная настройка Keenetic</h2>
+    <p style="margin-bottom:18px">Всё это делается один раз перед тем, как вы напишете нам. Займёт около 10–15 минут.</p>
+
+    <div class="card">
+      <h3>1. Проверьте версию OS</h3>
+      <p>В админке откройте «Системный монитор» → блок «Обновления системы» → «Версия ОС». Нужна версия 4.3 и выше.</p>
+      <figure><img src="img/step1.jpg" width="1024" height="584" loading="lazy" alt="Системный монитор Keenetic, версия ОС выделена красной рамкой"><figcaption>Версия ОС — в блоке «Обновления системы»</figcaption></figure>
+    </div>
+
+    <div class="card">
+      <h3>2. Подключите Keenetic к основному роутеру</h3>
+      <p>Соедините порт LAN основного роутера с портом WAN (синий) Keenetic патчкордом.</p>
+      <p class="quote">В комплекте с Keenetic есть короткий кабель — он подойдёт.</p>
+      <figure><img src="img/step2.jpg" width="1024" height="628" loading="lazy" alt="Схема: кабель из LAN-порта главного роутера в WAN-порт второго роутера"><figcaption>Схема: LAN главного роутера → WAN Keenetic</figcaption></figure>
+      <p style="margin-top:14px">Затем подключитесь к Wi-Fi Keenetic — логин и пароль указаны на самом роутере.</p>
+    </div>
+
+    <div class="card">
+      <h3>3. Зайдите в админ-панель</h3>
+      <p><b>Откройте браузер</b> и введите один из адресов:</p>
+      <ul class="list">
+        <li><b>my.keenetic.net</b> (рекомендуется)</li>
+        <li><b>192.168.1.1</b></li>
+      </ul>
+      <p style="margin-top:14px"><b>Данные по умолчанию:</b></p>
+      <table>
+        <thead><tr><th>Поле</th><th>Значение</th></tr></thead>
+        <tbody>
+          <tr><td>Логин</td><td><code>admin</code></td></tr>
+          <tr><td>Пароль</td><td><code>admin</code></td></tr>
+        </tbody>
+      </table>
+      <p class="quote">При первом входе роутер попросит сменить пароль и пройти мастер настройки — это нормально.</p>
+    </div>
+
+    <div class="card">
+      <h3>4. Включите удалённый доступ через интернет</h3>
+      <p><b>Включите облачный доступ KeenDNS</b> — встроенный бесплатный DDNS-сервис Keenetic. В админке включите <b>KeenDNS</b>: вам выдадут домен вида:</p>
+      <p style="margin-top:8px"><code>ваше-имя.keenetic.pro</code> или <code>ваше-имя.crazedns.ru</code></p>
+      <p style="margin-top:10px">Затем там же включите <b>«Доступ к веб-интерфейсу из интернета»</b> (в разделе «Доменное имя» — галочка «Разрешить доступ из интернета»).</p>
+      <figure><img src="img/step3.jpg" width="1024" height="542" loading="lazy" alt="Раздел «Доменное имя» в Keenetic, поле с доменным именем выделено"><figcaption>«Доменное имя» → KeenDNS. Должен быть адрес примерно такого вида (доменное имя)</figcaption></figure>
+    </div>
+
+    <div class="card">
+      <h3>5. Откройте доступ к веб-интерфейсу</h3>
+      <p><b>Управление</b> → <b>Веб-конфигуратор</b> → поставьте галочку <b>«Разрешить доступ из интернета»</b>.</p>
+      <figure><img src="img/step4.jpg" width="1024" height="574" loading="lazy" alt="Раздел «Пользователи и доступ», блок «Удалённое управление» выделен красной рамкой"><figcaption>Блок «Удалённое управление» в разделе «Пользователи и доступ»</figcaption></figure>
+    </div>
+
+    <p class="note">Готово? Пришлите в чат адрес роутера, логин и пароль от админки и желаемую локацию. Если что-то не получается — напишите, поможем.</p>
   </section>
 
   <section id="steps">
