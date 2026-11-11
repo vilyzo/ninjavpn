@@ -262,11 +262,12 @@ figure img{cursor:zoom-in}
   lbImg.addEventListener('click', function(e){ e.stopPropagation(); lb.classList.toggle('zoom'); });
   lb.addEventListener('click', closeLb);
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeLb(); });
-  // Закрываем веб-приложение — пользователь остаётся в чате с ботом и пишет как обычно
+  // Кнопки «Написать» ведут в личный чат по прямой ссылке
+  var WRITE_URL = 'https://t.me/vpn_ken_bot_direct?direct';
   document.querySelectorAll('.js-chat').forEach(function(b){
     b.addEventListener('click', function(){
-      if (tg && tg.close) { tg.close(); }
-      else { window.location.href = 'https://t.me/'; }
+      if (tg && tg.openTelegramLink) { tg.openTelegramLink(WRITE_URL); }
+      else { window.open(WRITE_URL, '_blank', 'noopener'); }
     });
   });
 })();
